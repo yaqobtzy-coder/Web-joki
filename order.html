@@ -8,12 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style id="theme-style">
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #0d47a1;
+            --primary-light: #42a5f5;
+            --accent-color: #ffd700;
+            --accent-dark: #ff8c00;
+            --bg-light: #ffffff;
+            --bg-card: rgba(255,255,255,0.85);
+            --text-dark: #1a2a6c;
+            --text-light: #2c3e8f;
+        }
+    </style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
-            color: #ffffff;
+            background: linear-gradient(135deg, #f0f4ff, #e6edfc);
+            color: var(--text-dark);
             min-height: 100vh;
         }
         .overlay {
@@ -22,7 +35,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            background: rgba(255,255,255,0.3);
             z-index: -1;
         }
         .container {
@@ -32,17 +45,17 @@
             min-height: 100vh;
         }
         .form-card {
-            background: rgba(15, 15, 35, 0.85);
+            background: var(--bg-card);
             backdrop-filter: blur(15px);
             border-radius: 48px;
             padding: 32px 28px;
-            border: 1px solid rgba(255, 215, 0, 0.25);
+            border: 1px solid rgba(30,136,229,0.25);
             width: 100%;
             margin-bottom: 20px;
         }
         .logo h1 {
             font-size: 1.8rem;
-            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -55,16 +68,17 @@
             text-align: center;
         }
         .product-info {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.03);
             border-radius: 20px;
             padding: 16px;
             margin: 20px 0;
             text-align: center;
+            border: 1px solid rgba(30,136,229,0.2);
         }
         .product-info .product-name {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--primary-dark);
         }
         .product-info .product-price {
             font-size: 1rem;
@@ -82,10 +96,10 @@
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 14px 16px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(30,136,229,0.25);
             border-radius: 24px;
-            color: white;
+            color: var(--text-dark);
             font-size: 1rem;
         }
         .form-group textarea {
@@ -94,11 +108,11 @@
         .btn-primary {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(95deg, #FFD700, #FF8C00);
+            background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
             border: none;
             border-radius: 40px;
             font-weight: 700;
-            color: #0a0a1a;
+            color: white;
             cursor: pointer;
             margin-top: 10px;
         }
@@ -106,10 +120,10 @@
             width: 100%;
             padding: 14px;
             background: transparent;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 1px solid var(--primary-color);
             border-radius: 40px;
             font-weight: 600;
-            color: #ffd700;
+            color: var(--primary-color);
             cursor: pointer;
             margin-top: 10px;
         }
@@ -122,8 +136,8 @@
         .login-method-btn {
             flex: 1;
             padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,215,0,0.3);
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(30,136,229,0.3);
             border-radius: 30px;
             text-align: center;
             cursor: pointer;
@@ -131,21 +145,22 @@
             transition: 0.2s;
         }
         .login-method-btn.active {
-            background: #ffd700;
-            color: #1a1a2e;
-            border-color: #ffd700;
+            background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-color: transparent;
         }
         .toast {
             position: fixed;
             bottom: 20px;
             left: 20px;
             right: 20px;
-            background: #1a1a2e;
+            background: var(--bg-light);
             padding: 12px;
             border-radius: 40px;
             text-align: center;
             z-index: 2000;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid var(--primary-color);
+            color: var(--primary-dark);
         }
         .loading-overlay {
             position: fixed;
@@ -164,17 +179,14 @@
         .spinner {
             width: 50px;
             height: 50px;
-            border: 3px solid rgba(255,215,0,0.3);
-            border-top: 3px solid #FFD700;
+            border: 3px solid rgba(30,136,229,0.3);
+            border-top: 3px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .queue-info {
-            background: rgba(255,215,0,0.1);
+            background: rgba(30,136,229,0.1);
             border-radius: 16px;
             padding: 12px;
             text-align: center;
@@ -183,7 +195,7 @@
         .queue-number {
             font-size: 2rem;
             font-weight: 800;
-            color: #ffd700;
+            color: var(--primary-color);
         }
         .payment-modal {
             position: fixed;
@@ -198,17 +210,16 @@
             z-index: 10000;
             padding: 20px;
         }
-        .payment-modal.active {
-            display: flex;
-        }
+        .payment-modal.active { display: flex; }
         .payment-card {
-            background: #1a1a2e;
+            background: var(--bg-light);
             border-radius: 32px;
             padding: 28px;
             max-width: 400px;
             width: 100%;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 1px solid var(--primary-color);
+            color: var(--text-dark);
         }
         .qris-image {
             width: 100%;
@@ -220,7 +231,7 @@
         }
         .countdown {
             font-size: 0.8rem;
-            color: #ffc107;
+            color: var(--primary-color);
             margin: 10px 0;
         }
     </style>
@@ -235,7 +246,6 @@
                 <p>FORM ORDER JOKI</p>
             </div>
 
-            <!-- Queue Info -->
             <div class="queue-info" id="queueInfo">
                 <i class="fas fa-hourglass-half"></i> Total Antrian Saat Ini: 
                 <span class="queue-number" id="currentQueue">0</span>
@@ -246,7 +256,6 @@
                 <div class="product-price" id="productPrice">Rp 0</div>
             </div>
 
-            <!-- Pilihan Login Method -->
             <div class="form-group">
                 <label><i class="fas fa-sign-in-alt"></i> Metode Login</label>
                 <div class="login-method" id="loginMethod">
@@ -273,7 +282,6 @@
                 <input type="tel" id="phoneNumber" placeholder="Contoh: 6281234567890">
             </div>
 
-            <!-- Pilihan Admin -->
             <div class="form-group">
                 <label><i class="fas fa-user-tie"></i> Pilih Admin Tujuan</label>
                 <select id="adminSelect">
@@ -302,23 +310,22 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
     <div id="paymentModal" class="payment-modal">
         <div class="payment-card">
-            <div id="paymentStatusIcon" style="width:80px;height:80px;background:#ffc107;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <div id="paymentStatusIcon" style="width:80px;height:80px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
                 <i class="fas fa-clock" style="font-size:3rem;color:#1a1a2e;"></i>
             </div>
             <h3 id="paymentTitle">Menunggu Pembayaran</h3>
-            <p id="paymentMessage" style="margin:16px 0; font-size:0.85rem;">Scan QRIS di bawah untuk membayar</p>
+            <p style="margin:16px 0; font-size:0.85rem;">Scan QRIS di bawah untuk membayar</p>
             <img id="qrisImage" class="qris-image" src="">
-            <div style="background:rgba(0,0,0,0.3); border-radius:20px; padding:12px; margin:16px 0; text-align:left;">
+            <div style="background:rgba(0,0,0,0.05); border-radius:20px; padding:12px; margin:16px 0; text-align:left;">
                 <p><strong>ID Transaksi:</strong> <span id="transaksiId">-</span></p>
                 <p><strong>Total Bayar:</strong> <span id="totalBayar">Rp 0</span></p>
                 <p><strong>Produk:</strong> <span id="paymentProduct">-</span></p>
             </div>
             <div id="countdownArea" class="countdown"></div>
-            <button id="checkPaymentBtn" style="width:100%; padding:14px; background:#ffd700; border:none; border-radius:40px; font-weight:bold; margin-bottom:10px;">Cek Status Pembayaran</button>
-            <button id="closePaymentBtn" style="width:100%; padding:14px; background:transparent; border:1px solid #ffd700; border-radius:40px; color:#ffd700; cursor:pointer;">Tutup</button>
+            <button id="checkPaymentBtn" style="width:100%; padding:14px; background:var(--primary-color); border:none; border-radius:40px; font-weight:bold; margin-bottom:10px; color:white;">Cek Status Pembayaran</button>
+            <button id="closePaymentBtn" style="width:100%; padding:14px; background:transparent; border:1px solid var(--primary-color); border-radius:40px; color:var(--primary-color); cursor:pointer;">Tutup</button>
         </div>
     </div>
 
@@ -344,6 +351,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        async function loadCustomTheme() {
+            const themeRef = ref(db, 'bizzy_settings/theme');
+            const snapshot = await get(themeRef);
+            const theme = snapshot.val();
+            if (theme) {
+                const styleTag = document.getElementById('theme-style');
+                if (styleTag) {
+                    styleTag.innerHTML = `
+                        :root {
+                            --primary-color: ${theme.primaryColor || '#1e88e5'};
+                            --primary-dark: ${theme.primaryDark || '#0d47a1'};
+                            --primary-light: ${theme.primaryLight || '#42a5f5'};
+                            --accent-color: ${theme.accentColor || '#ffd700'};
+                            --accent-dark: ${theme.accentDark || '#ff8c00'};
+                            --bg-light: #ffffff;
+                            --bg-card: rgba(255,255,255,0.85);
+                            --text-dark: #1a2a6c;
+                            --text-light: #2c3e8f;
+                        }
+                    `;
+                }
+            }
+        }
+
         const ZAKI_API_URL = 'https://qris.zakki.store/topup';
         const ZAKI_CHECK_URL = 'https://qris.zakki.store/cektopup';
         const ZAKI_TOKEN = '13db95d8e39ea2';
@@ -365,7 +396,6 @@
         function showLoading() { document.getElementById("loadingOverlay").classList.add("show"); }
         function hideLoading() { document.getElementById("loadingOverlay").classList.remove("show"); }
 
-        // Load queue number
         async function loadQueueNumber() {
             const ordersRef = ref(db, 'bizzy_orders');
             const snapshot = await get(ordersRef);
@@ -402,7 +432,6 @@
             document.getElementById('productPrice').innerText = 'Rp ' + parseInt(price).toLocaleString();
         }
 
-        // Login method selection
         document.querySelectorAll('.login-method-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.login-method-btn').forEach(b => b.classList.remove('active'));
@@ -461,18 +490,14 @@
 
         async function autoCheckStatus() {
             if (!pendingTransaction || !pendingTransaction.id_transaksi) return;
-            
             try {
                 const response = await fetch(`${ZAKI_CHECK_URL}?idtopup=${pendingTransaction.id_transaksi}`);
                 const result = await response.json();
-                
                 if (result.code === 200 && result.kategori_status === "SUCCESS") {
                     clearInterval(checkInterval);
                     await processSuccess();
                 }
-            } catch (error) {
-                console.error("Auto check error:", error);
-            }
+            } catch (error) { console.error("Auto check error:", error); }
         }
 
         async function checkPaymentStatus() {
@@ -480,13 +505,11 @@
                 showToast("Tidak ada transaksi pending!");
                 return;
             }
-            
             showLoading();
             try {
                 const response = await fetch(`${ZAKI_CHECK_URL}?idtopup=${pendingTransaction.id_transaksi}`);
                 const result = await response.json();
                 hideLoading();
-                
                 if (result.code === 200 && result.kategori_status === "SUCCESS") {
                     clearInterval(checkInterval);
                     await processSuccess();
@@ -502,10 +525,7 @@
         }
 
         async function processSuccess() {
-            // Get queue number
             const queueNumber = currentQueueNumber;
-            
-            // Get form data
             const loginEmail = document.getElementById('loginEmail').value.trim();
             const loginPassword = document.getElementById('loginPassword').value;
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
@@ -513,22 +533,10 @@
             const proofLink = document.getElementById('proofLink').value.trim();
             const notes = document.getElementById('notes').value.trim();
 
-            if (!loginEmail) {
-                showToast("Masukkan Email/Username!");
-                return;
-            }
-            if (!loginPassword) {
-                showToast("Masukkan Password!");
-                return;
-            }
-            if (!phoneNumber) {
-                showToast("Masukkan Nomor Telepon!");
-                return;
-            }
-            if (!proofLink) {
-                showToast("Masukkan Link Bukti Transfer!");
-                return;
-            }
+            if (!loginEmail) { showToast("Masukkan Email/Username!"); return; }
+            if (!loginPassword) { showToast("Masukkan Password!"); return; }
+            if (!phoneNumber) { showToast("Masukkan Nomor Telepon!"); return; }
+            if (!proofLink) { showToast("Masukkan Link Bukti Transfer!"); return; }
 
             const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             
@@ -555,15 +563,13 @@
 
             await push(ref(db, 'bizzy_orders'), order);
             
-            // Send notification to admin via Telegram (opsional)
             try {
-                const adminPhone = adminSelect === '6281772352832' ? '6281772352832' : '6285794545996';
                 await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: '7966336512',
-                        text: `📋 *PESANAN BARU BIZZY IMPACT*\n\n👤 User: ${orderData.username}\n📦 Produk: ${orderData.productName}\n💰 Harga: Rp ${orderData.productPrice}\n📱 WA: ${phoneNumber}\n🆔 Queue: ${queueNumber}\n📊 Status: Menunggu Konfirmasi`,
+                        text: `📋 *PESANAN BARU BIZZY IMPACT*\n\n👤 User: ${orderData.username}\n📦 Produk: ${orderData.productName}\n💰 Harga: Rp ${orderData.productPrice}\n📱 WA: ${phoneNumber}\n🆔 Queue: ${queueNumber}`,
                         parse_mode: 'Markdown'
                     })
                 });
@@ -579,7 +585,6 @@
             const interval = setInterval(() => {
                 const now = new Date();
                 const diff = expiredTime - now;
-                
                 if (diff <= 0) {
                     clearInterval(interval);
                     countdownArea.innerHTML = '<i class="fas fa-clock"></i> QRIS telah kadaluarsa. Silakan buat pesanan baru.';
@@ -597,22 +602,10 @@
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const proofLink = document.getElementById('proofLink').value.trim();
 
-            if (!loginEmail) {
-                showToast("Masukkan Email/Username!");
-                return;
-            }
-            if (!loginPassword) {
-                showToast("Masukkan Password!");
-                return;
-            }
-            if (!phoneNumber) {
-                showToast("Masukkan Nomor Telepon!");
-                return;
-            }
-            if (!proofLink) {
-                showToast("Masukkan Link Bukti Transfer!");
-                return;
-            }
+            if (!loginEmail) { showToast("Masukkan Email/Username!"); return; }
+            if (!loginPassword) { showToast("Masukkan Password!"); return; }
+            if (!phoneNumber) { showToast("Masukkan Nomor Telepon!"); return; }
+            if (!proofLink) { showToast("Masukkan Link Bukti Transfer!"); return; }
 
             await loadQueueNumber();
             createPayment();
@@ -624,12 +617,12 @@
             if (checkInterval) clearInterval(checkInterval);
         });
 
-        function goBack() {
-            window.location.href = 'index.html';
-        }
+        function goBack() { window.location.href = 'index.html'; }
 
+        await loadCustomTheme();
         loadQueueNumber();
         loadData();
+        window.goBack = goBack;
     </script>
 </body>
 </html>

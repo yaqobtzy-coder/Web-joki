@@ -6,12 +6,25 @@
     <title>Sukses | Bizzy Impact Official</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style id="theme-style">
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #0d47a1;
+            --primary-light: #42a5f5;
+            --accent-color: #ffd700;
+            --accent-dark: #ff8c00;
+            --bg-light: #ffffff;
+            --bg-card: rgba(255,255,255,0.85);
+            --text-dark: #1a2a6c;
+            --text-light: #2c3e8f;
+        }
+    </style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
-            color: #ffffff;
+            background: linear-gradient(135deg, #f0f4ff, #e6edfc);
+            color: var(--text-dark);
             min-height: 100vh;
         }
         .overlay {
@@ -20,7 +33,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            background: rgba(255,255,255,0.3);
             z-index: -1;
         }
         .container {
@@ -33,17 +46,17 @@
             justify-content: center;
         }
         .success-card {
-            background: rgba(15, 15, 35, 0.85);
+            background: var(--bg-card);
             backdrop-filter: blur(15px);
             border-radius: 48px;
             padding: 40px 28px;
-            border: 1px solid rgba(255, 215, 0, 0.25);
+            border: 1px solid rgba(30,136,229,0.25);
             width: 100%;
             text-align: center;
         }
         .logo h1 {
             font-size: 1.8rem;
-            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -78,17 +91,18 @@
             line-height: 1.5;
         }
         .transaction-details {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.03);
             border-radius: 20px;
             padding: 16px;
             margin: 20px 0;
             text-align: left;
+            border: 1px solid rgba(30,136,229,0.2);
         }
         .transaction-details p { margin-bottom: 8px; font-size: 0.85rem; }
         .transaction-details .label { opacity: 0.6; }
-        .transaction-details .value { font-weight: 600; color: #ffd700; }
+        .transaction-details .value { font-weight: 600; color: var(--primary-color); }
         .info-box {
-            background: rgba(255,215,0,0.1);
+            background: rgba(30,136,229,0.1);
             border-radius: 16px;
             padding: 12px;
             margin-top: 16px;
@@ -109,21 +123,21 @@
             width: 100%;
             padding: 14px;
             background: transparent;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 1px solid var(--primary-color);
             border-radius: 40px;
             font-weight: 600;
-            color: #ffd700;
+            color: var(--primary-color);
             cursor: pointer;
             margin-top: 10px;
         }
         .countdown {
             font-size: 0.8rem;
-            color: #ffc107;
+            color: var(--primary-color);
             margin-top: 16px;
         }
         .warning-box {
-            background: rgba(255,193,7,0.15);
-            border-left: 3px solid #ffc107;
+            background: rgba(30,136,229,0.08);
+            border-left: 3px solid var(--accent-color);
             padding: 12px;
             border-radius: 12px;
             margin-top: 16px;
@@ -192,10 +206,34 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        async function loadCustomTheme() {
+            const themeRef = ref(db, 'bizzy_settings/theme');
+            const snapshot = await get(themeRef);
+            const theme = snapshot.val();
+            if (theme) {
+                const styleTag = document.getElementById('theme-style');
+                if (styleTag) {
+                    styleTag.innerHTML = `
+                        :root {
+                            --primary-color: ${theme.primaryColor || '#1e88e5'};
+                            --primary-dark: ${theme.primaryDark || '#0d47a1'};
+                            --primary-light: ${theme.primaryLight || '#42a5f5'};
+                            --accent-color: ${theme.accentColor || '#ffd700'};
+                            --accent-dark: ${theme.accentDark || '#ff8c00'};
+                            --bg-light: #ffffff;
+                            --bg-card: rgba(255,255,255,0.85);
+                            --text-dark: #1a2a6c;
+                            --text-light: #2c3e8f;
+                        }
+                    `;
+                }
+            }
+        }
+
         let lastOrder = null;
         let adminNumber = '6281772352832';
 
-        async function loadData() {
+        function loadData() {
             const orderData = localStorage.getItem('bizzy_last_order');
             if (orderData) {
                 lastOrder = JSON.parse(orderData);
@@ -204,15 +242,7 @@
                 document.getElementById('detailTransactionId').innerText = lastOrder.transactionId || '-';
                 document.getElementById('detailDate').innerText = new Date().toLocaleString();
                 document.getElementById('detailQueue').innerText = lastOrder.queueNumber || '-';
-                
-                // Get admin number from order
-                if (lastOrder.adminTarget) {
-                    adminNumber = lastOrder.adminTarget;
-                }
-            } else {
-                document.getElementById('detailProduct').innerText = '-';
-                document.getElementById('detailAmount').innerText = 'Rp 0';
-                document.getElementById('detailTransactionId').innerText = '-';
+                if (lastOrder.adminTarget) adminNumber = lastOrder.adminTarget;
             }
         }
 
@@ -242,7 +272,6 @@ Mohon segera diproses. Terima kasih.`;
             window.location.href = 'index.html';
         }
 
-        // Countdown redirect
         let seconds = 10;
         const countdownArea = document.getElementById('countdownArea');
         const interval = setInterval(() => {
@@ -255,6 +284,7 @@ Mohon segera diproses. Terima kasih.`;
             }
         }, 1000);
 
+        await loadCustomTheme();
         loadData();
         window.goToHome = goToHome;
     </script>

@@ -8,12 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style id="theme-style">
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #0d47a1;
+            --primary-light: #42a5f5;
+            --accent-color: #ffd700;
+            --accent-dark: #ff8c00;
+            --bg-light: #ffffff;
+            --bg-card: rgba(255,255,255,0.8);
+            --text-dark: #1a2a6c;
+            --text-light: #2c3e8f;
+        }
+    </style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
-            color: #ffffff;
+            background: linear-gradient(135deg, #f0f4ff, #e6edfc);
+            color: var(--text-dark);
             min-height: 100vh;
         }
         .overlay {
@@ -22,7 +35,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            background: rgba(255,255,255,0.3);
             z-index: -1;
         }
         .container {
@@ -32,29 +45,30 @@
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a3a, #0f0f2a);
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
             border-radius: 30px;
             padding: 24px;
             margin-bottom: 20px;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 1px solid rgba(30,136,229,0.3);
         }
         .header h1 {
-            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         .order-card {
-            background: rgba(0,0,0,0.5);
+            background: var(--bg-card);
             backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 18px;
             margin-bottom: 15px;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 1px solid rgba(30,136,229,0.2);
             transition: 0.2s;
         }
-        .order-card.pending { border-left: 4px solid #ffc107; }
+        .order-card.pending { border-left: 4px solid var(--accent-color); }
         .order-card.processing { border-left: 4px solid #17a2b8; }
         .order-card.completed { border-left: 4px solid #28a745; }
         .order-card.cancelled { border-left: 4px solid #dc3545; }
@@ -69,7 +83,7 @@
         .order-product {
             font-size: 1rem;
             font-weight: bold;
-            color: #ffd700;
+            color: var(--primary-dark);
         }
         .status-badge {
             padding: 4px 12px;
@@ -77,7 +91,7 @@
             font-size: 0.7rem;
             font-weight: bold;
         }
-        .status-pending { background: #ffc107; color: #1a1a2e; }
+        .status-pending { background: var(--accent-color); color: #1a1a2e; }
         .status-processing { background: #17a2b8; color: white; }
         .status-completed { background: #28a745; color: white; }
         .status-cancelled { background: #dc3545; color: white; }
@@ -86,37 +100,28 @@
             opacity: 0.85;
             margin-top: 10px;
         }
-        .order-details p { 
-            margin: 6px 0; 
-            display: flex; 
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
+        .order-details p { margin: 6px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px; }
         .order-details .label { opacity: 0.6; }
-        .order-details .value { font-weight: 500; color: #ffd700; }
-        .history-id {
-            font-family: monospace;
-            font-size: 0.7rem;
-        }
+        .order-details .value { font-weight: 500; color: var(--primary-color); }
+        .history-id { font-family: monospace; font-size: 0.7rem; }
         .btn-secondary {
             width: 100%;
             padding: 14px;
             background: transparent;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 1px solid var(--primary-color);
             border-radius: 40px;
             font-weight: 600;
-            color: #ffd700;
+            color: var(--primary-color);
             cursor: pointer;
             margin-top: 10px;
         }
         .btn-refresh {
-            background: rgba(255,215,0,0.2);
-            border: 1px solid #ffd700;
+            background: rgba(30,136,229,0.1);
+            border: 1px solid var(--primary-color);
             padding: 8px 16px;
             border-radius: 30px;
             font-size: 0.7rem;
-            color: #ffd700;
+            color: var(--primary-color);
             cursor: pointer;
             margin-bottom: 15px;
         }
@@ -124,11 +129,7 @@
             text-align: center;
             padding: 40px;
         }
-        .empty-state i {
-            font-size: 3rem;
-            opacity: 0.3;
-            margin-bottom: 16px;
-        }
+        .empty-state i { font-size: 3rem; opacity: 0.3; margin-bottom: 16px; }
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -146,29 +147,33 @@
         .spinner {
             width: 50px;
             height: 50px;
-            border: 3px solid rgba(255,215,0,0.3);
-            border-top: 3px solid #FFD700;
+            border: 3px solid rgba(30,136,229,0.3);
+            border-top: 3px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.7rem;
-            opacity: 0.5;
-        }
-        .auto-refresh-info {
-            text-align: center;
-            font-size: 0.65rem;
-            opacity: 0.5;
-            margin-bottom: 15px;
-        }
+        footer { text-align: center; padding: 20px; font-size: 0.7rem; opacity: 0.5; }
+        .auto-refresh-info { text-align: center; font-size: 0.65rem; opacity: 0.5; margin-bottom: 15px; }
         .queue-badge-small {
-            background: #ff5722;
+            background: var(--accent-color);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.65rem;
+            color: #1a1a2e;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--bg-light);
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            z-index: 2000;
+            border-left: 4px solid var(--primary-color);
+            color: var(--primary-dark);
         }
     </style>
 </head>
@@ -219,32 +224,41 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        async function loadCustomTheme() {
+            const themeRef = ref(db, 'bizzy_settings/theme');
+            const snapshot = await get(themeRef);
+            const theme = snapshot.val();
+            if (theme) {
+                const styleTag = document.getElementById('theme-style');
+                if (styleTag) {
+                    styleTag.innerHTML = `
+                        :root {
+                            --primary-color: ${theme.primaryColor || '#1e88e5'};
+                            --primary-dark: ${theme.primaryDark || '#0d47a1'};
+                            --primary-light: ${theme.primaryLight || '#42a5f5'};
+                            --accent-color: ${theme.accentColor || '#ffd700'};
+                            --accent-dark: ${theme.accentDark || '#ff8c00'};
+                            --bg-light: #ffffff;
+                            --bg-card: rgba(255,255,255,0.8);
+                            --text-dark: #1a2a6c;
+                            --text-light: #2c3e8f;
+                        }
+                    `;
+                }
+            }
+        }
+
         let currentUserId = localStorage.getItem("bizzy_userId");
         let currentUsername = localStorage.getItem("bizzy_username");
         let refreshInterval = null;
 
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('show');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('show');
-        }
+        function showLoading() { document.getElementById('loadingOverlay').classList.add('show'); }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
 
         function showToast(msg) {
             let toast = document.createElement("div");
             toast.className = "toast";
             toast.innerHTML = msg;
-            toast.style.position = "fixed";
-            toast.style.bottom = "20px";
-            toast.style.left = "20px";
-            toast.style.right = "20px";
-            toast.style.background = "#1a1a2e";
-            toast.style.padding = "12px";
-            toast.style.borderRadius = "40px";
-            toast.style.textAlign = "center";
-            toast.style.zIndex = "2000";
-            toast.style.borderLeft = "4px solid #ffd700";
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
@@ -292,39 +306,21 @@
             }
 
             showLoading();
-
             try {
                 const ordersRef = ref(db, 'bizzy_orders');
                 const snapshot = await get(ordersRef);
                 const orders = snapshot.val();
 
                 if (!orders) {
-                    document.getElementById('ordersList').innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>Belum ada pesanan</p>
-                            <p style="font-size:0.7rem; margin-top:8px;">Silakan order joki terlebih dahulu</p>
-                            <button class="btn-secondary" onclick="window.location.href='index.html'">Order Sekarang</button>
-                        </div>
-                    `;
+                    document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesanan</p><button class="btn-secondary" onclick="window.location.href='index.html'">Order Sekarang</button></div>`;
                     hideLoading();
                     return;
                 }
 
-                // Filter pesanan berdasarkan userId yang login
-                const userOrders = Object.entries(orders)
-                    .filter(([id, order]) => order.userId === currentUserId)
-                    .sort((a, b) => new Date(b[1].createdAt) - new Date(a[1].createdAt));
+                const userOrders = Object.entries(orders).filter(([id, order]) => order.userId === currentUserId).sort((a,b) => new Date(b[1].createdAt) - new Date(a[1].createdAt));
 
                 if (userOrders.length === 0) {
-                    document.getElementById('ordersList').innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>Belum ada pesanan</p>
-                            <p style="font-size:0.7rem; margin-top:8px;">Silakan order joki terlebih dahulu</p>
-                            <button class="btn-secondary" onclick="window.location.href='index.html'">Order Sekarang</button>
-                        </div>
-                    `;
+                    document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesanan</p><button class="btn-secondary" onclick="window.location.href='index.html'">Order Sekarang</button></div>`;
                     hideLoading();
                     return;
                 }
@@ -335,7 +331,6 @@
                     const statusBadge = getStatusBadge(order.status);
                     const statusText = getStatusText(order.status);
                     
-                    // Tentukan warna untuk queue number
                     let queueHtml = '';
                     if (order.queueNumber) {
                         queueHtml = `<span class="queue-badge-small"><i class="fas fa-hourglass-half"></i> Antrian ke-${order.queueNumber}</span>`;
@@ -345,10 +340,7 @@
                         <div class="order-card ${statusClass}">
                             <div class="order-header">
                                 <span class="order-product"><i class="fas fa-gamepad"></i> ${escapeHtml(order.productName)}</span>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    ${queueHtml}
-                                    ${statusBadge}
-                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">${queueHtml}${statusBadge}</div>
                             </div>
                             <div class="order-details">
                                 <p><span class="label">📅 Tanggal Order:</span> <span class="value">${new Date(order.createdAt).toLocaleString()}</span></p>
@@ -356,78 +348,33 @@
                                 <p><span class="label">🆔 ID Transaksi:</span> <span class="value history-id">${order.transactionId || '-'}</span></p>
                                 <p><span class="label">📱 WhatsApp:</span> <span class="value">${escapeHtml(order.phoneNumber || '-')}</span></p>
                                 <p><span class="label">📊 Status:</span> <span class="value">${statusText}</span></p>
-                                ${order.proofLink ? `<p><span class="label">🔗 Bukti Transfer:</span> <span class="value"><a href="${escapeHtml(order.proofLink)}" target="_blank" style="color:#ffd700;">Lihat Bukti</a></span></p>` : ''}
-                                ${order.notes ? `<p><span class="label">📝 Catatan:</span> <span class="value">${escapeHtml(order.notes)}</span></p>` : ''}
+                                ${order.proofLink ? `<p><span class="label">🔗 Bukti Transfer:</span> <span class="value"><a href="${escapeHtml(order.proofLink)}" target="_blank" style="color:var(--primary-color);">Lihat Bukti</a></span></p>` : ''}
                                 ${order.processedBy ? `<p><span class="label">👨‍💼 Diproses oleh:</span> <span class="value">${escapeHtml(order.processedBy)}</span></p>` : ''}
-                                ${order.updatedAt && order.status !== 'pending' ? `<p><span class="label">⏰ Update Terakhir:</span> <span class="value">${new Date(order.updatedAt).toLocaleString()}</span></p>` : ''}
                             </div>
-                            ${order.status === 'completed' ? `
-                            <div style="margin-top: 12px; padding: 10px; background: rgba(40,167,69,0.2); border-radius: 12px; text-align: center;">
-                                <i class="fas fa-check-circle"></i> Terima kasih telah menggunakan jasa Bizzy Impact!
-                            </div>
-                            ` : ''}
-                            ${order.status === 'pending' ? `
-                            <div style="margin-top: 12px; padding: 10px; background: rgba(255,193,7,0.1); border-radius: 12px; text-align: center;">
-                                <i class="fas fa-clock"></i> Pesanan sedang menunggu konfirmasi admin. Mohon bersabar.
-                            </div>
-                            ` : ''}
-                            ${order.status === 'processing' ? `
-                            <div style="margin-top: 12px; padding: 10px; background: rgba(23,162,184,0.1); border-radius: 12px; text-align: center;">
-                                <i class="fas fa-spinner fa-pulse"></i> Pesanan sedang dikerjakan oleh admin. Status akan diupdate jika sudah selesai.
-                            </div>
-                            ` : ''}
                         </div>
                     `;
                 }
-                
                 document.getElementById('ordersList').innerHTML = html;
             } catch (error) {
-                console.error('Error loading orders:', error);
-                document.getElementById('ordersList').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
-                        <p>Gagal memuat pesanan</p>
-                        <button class="btn-secondary" onclick="location.reload()">Coba Lagi</button>
-                    </div>
-                `;
+                document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat pesanan</p><button class="btn-secondary" onclick="location.reload()">Coba Lagi</button></div>`;
             } finally {
                 hideLoading();
             }
         }
 
-        function manualRefresh() {
-            showToast("🔄 Memuat ulang data...");
-            loadOrders();
-        }
+        function manualRefresh() { showToast("🔄 Memuat ulang data..."); loadOrders(); }
+        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+        function goBack() { window.location.href = 'index.html'; }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-        }
-
-        function goBack() {
-            window.location.href = 'index.html';
-        }
-
-        // Auto refresh setiap 10 detik
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(() => {
-                if (currentUserId) {
-                    loadOrders();
-                }
-            }, 10000);
+            refreshInterval = setInterval(() => { if (currentUserId) loadOrders(); }, 10000);
         }
 
-        // Cek login dan load data
+        await loadCustomTheme();
+
         if (!currentUserId || !currentUsername) {
-            document.getElementById('ordersList').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-lock"></i>
-                    <p>Silakan login terlebih dahulu untuk melihat pesanan Anda</p>
-                    <button class="btn-secondary" onclick="window.location.href='index.html'">Login Sekarang</button>
-                </div>
-            `;
+            document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-lock"></i><p>Silakan login terlebih dahulu</p><button class="btn-secondary" onclick="window.location.href='index.html'">Login Sekarang</button></div>`;
         } else {
             loadOrders();
             startAutoRefresh();

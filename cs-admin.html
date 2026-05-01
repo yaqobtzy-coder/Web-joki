@@ -8,12 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style id="theme-style">
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #0d47a1;
+            --primary-light: #42a5f5;
+            --accent-color: #ffd700;
+            --accent-dark: #ff8c00;
+            --bg-light: #ffffff;
+            --bg-card: rgba(255,255,255,0.8);
+            --text-dark: #1a2a6c;
+            --text-light: #2c3e8f;
+        }
+    </style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
-            color: #ffffff;
+            background: linear-gradient(135deg, #f0f4ff, #e6edfc);
+            color: var(--text-dark);
             min-height: 100vh;
         }
         .overlay {
@@ -22,7 +35,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            background: rgba(255,255,255,0.3);
             z-index: -1;
         }
         .container {
@@ -32,31 +45,32 @@
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a3a, #0f0f2a);
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
             border-radius: 30px;
             padding: 20px;
             margin-bottom: 20px;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.2);
+            border: 1px solid rgba(30,136,229,0.3);
         }
         .header h1 {
-            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         
-        /* Daftar Chat User */
         .user-list {
-            background: rgba(0,0,0,0.4);
+            background: var(--bg-card);
             border-radius: 24px;
             padding: 16px;
             margin-bottom: 20px;
             max-height: 300px;
             overflow-y: auto;
+            border: 1px solid rgba(30,136,229,0.2);
         }
         .user-item {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.03);
             border-radius: 16px;
             padding: 12px;
             margin-bottom: 10px;
@@ -67,11 +81,11 @@
             align-items: center;
         }
         .user-item:hover {
-            background: rgba(255,215,0,0.15);
+            background: rgba(30,136,229,0.1);
         }
         .user-item.active {
-            background: rgba(255,215,0,0.25);
-            border-left: 3px solid #ffd700;
+            background: rgba(30,136,229,0.15);
+            border-left: 3px solid var(--primary-color);
         }
         .user-name {
             font-weight: bold;
@@ -81,28 +95,30 @@
             opacity: 0.6;
         }
         .unread-badge {
-            background: #ff5722;
+            background: var(--accent-color);
             padding: 2px 8px;
             border-radius: 20px;
             font-size: 0.7rem;
+            color: #1a1a2e;
         }
         
-        /* Chat Room */
         .chat-container {
-            background: rgba(0,0,0,0.5);
+            background: var(--bg-card);
             backdrop-filter: blur(10px);
             border-radius: 24px;
             height: 50vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: 1px solid rgba(30,136,229,0.2);
         }
         .chat-header {
             padding: 14px 16px;
-            background: rgba(0,0,0,0.5);
-            border-bottom: 1px solid rgba(255,215,0,0.2);
+            background: rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(30,136,229,0.2);
             text-align: center;
             font-weight: bold;
+            color: var(--primary-dark);
         }
         .chat-messages {
             flex: 1;
@@ -119,15 +135,16 @@
             font-size: 0.85rem;
         }
         .chat-message.admin {
-            background: linear-gradient(95deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
+            color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
         .chat-message.user {
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.05);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
+            color: var(--text-dark);
         }
         .chat-username {
             font-size: 0.7rem;
@@ -144,35 +161,35 @@
             display: flex;
             gap: 10px;
             padding: 16px;
-            background: rgba(0,0,0,0.5);
-            border-top: 1px solid rgba(255,215,0,0.2);
+            background: rgba(0,0,0,0.03);
+            border-top: 1px solid rgba(30,136,229,0.2);
         }
         .chat-input-area input {
             flex: 1;
             padding: 12px 16px;
-            background: rgba(255,255,255,0.1);
-            border: none;
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(30,136,229,0.3);
             border-radius: 30px;
-            color: white;
+            color: var(--text-dark);
         }
         .chat-input-area button {
-            background: #ffd700;
+            background: var(--primary-color);
             border: none;
             padding: 12px 20px;
             border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
-            color: #1a1a2e;
+            color: white;
         }
         
         .btn-secondary {
             width: 100%;
             padding: 14px;
             background: transparent;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 1px solid var(--primary-color);
             border-radius: 40px;
             font-weight: 600;
-            color: #ffd700;
+            color: var(--primary-color);
             cursor: pointer;
             margin-top: 10px;
         }
@@ -181,12 +198,13 @@
             bottom: 20px;
             left: 20px;
             right: 20px;
-            background: #1a1a2e;
+            background: var(--bg-light);
             padding: 12px;
             border-radius: 40px;
             text-align: center;
             z-index: 2000;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid var(--primary-color);
+            color: var(--primary-dark);
         }
         .admin-selector {
             display: flex;
@@ -196,14 +214,15 @@
         .admin-btn {
             flex: 1;
             padding: 10px;
-            background: rgba(0,0,0,0.4);
+            background: var(--bg-card);
             border-radius: 30px;
             text-align: center;
             cursor: pointer;
+            border: 1px solid rgba(30,136,229,0.3);
         }
         .admin-btn.active {
-            background: #ffd700;
-            color: #1a1a2e;
+            background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
+            color: white;
         }
     </style>
 </head>
@@ -216,18 +235,15 @@
             <p>Balas chat user</p>
         </div>
 
-        <!-- Pilih Admin (Admin 1 atau Admin 2) -->
         <div class="admin-selector">
             <div class="admin-btn active" data-admin="admin1">👨‍💼 Admin 1</div>
             <div class="admin-btn" data-admin="admin2">👨‍💼 Admin 2</div>
         </div>
 
-        <!-- Daftar User yang Chat -->
         <div class="user-list" id="userList">
             <div style="text-align:center; padding:20px;">Memuat daftar user...</div>
         </div>
 
-        <!-- Chat Room -->
         <div class="chat-container" id="chatContainer" style="display: none;">
             <div class="chat-header">
                 <i class="fas fa-comments"></i> Chat dengan: <span id="chatUserName">-</span>
@@ -258,10 +274,34 @@
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-        import { getDatabase, ref, get, push, onValue, set, update, query, orderByChild } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+        import { getDatabase, ref, get, push, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        async function loadCustomTheme() {
+            const themeRef = ref(db, 'bizzy_settings/theme');
+            const snapshot = await get(themeRef);
+            const theme = snapshot.val();
+            if (theme) {
+                const styleTag = document.getElementById('theme-style');
+                if (styleTag) {
+                    styleTag.innerHTML = `
+                        :root {
+                            --primary-color: ${theme.primaryColor || '#1e88e5'};
+                            --primary-dark: ${theme.primaryDark || '#0d47a1'};
+                            --primary-light: ${theme.primaryLight || '#42a5f5'};
+                            --accent-color: ${theme.accentColor || '#ffd700'};
+                            --accent-dark: ${theme.accentDark || '#ff8c00'};
+                            --bg-light: #ffffff;
+                            --bg-card: rgba(255,255,255,0.8);
+                            --text-dark: #1a2a6c;
+                            --text-light: #2c3e8f;
+                        }
+                    `;
+                }
+            }
+        }
 
         let currentAdmin = "admin1";
         let currentAdminName = "Admin 1";
@@ -277,7 +317,6 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Pilih Admin
         document.querySelectorAll('.admin-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.admin-btn').forEach(b => b.classList.remove('active'));
@@ -290,7 +329,6 @@
             });
         });
 
-        // Load daftar user yang pernah chat
         async function loadUserList() {
             const chatsRef = ref(db, 'bizzy_chats');
             const snapshot = await get(chatsRef);
@@ -301,15 +339,12 @@
                 return;
             }
 
-            // Cari semua chat room untuk admin ini
             const userMap = new Map();
             
             for (const [chatId, chatData] of Object.entries(chats)) {
-                // Format chatId: chat_userId_admin1
                 if (chatId.includes(`_${currentAdmin}`)) {
                     const userId = chatId.replace(`_${currentAdmin}`, '').replace('chat_', '');
                     
-                    // Ambil username dari database users
                     let username = userId;
                     try {
                         const userRef = ref(db, `bizzy_users/${userId}`);
@@ -328,7 +363,7 @@
                         username: username,
                         lastMessage: lastMessage,
                         lastMessageTime: lastMessageTime,
-                        unread: unread && unread !== currentAdmin
+                        unread: unread
                     });
                 }
             }
@@ -338,7 +373,6 @@
                 return;
             }
             
-            // Urutkan berdasarkan lastMessageTime terbaru
             const users = Array.from(userMap.values()).sort((a,b) => b.lastMessageTime - a.lastMessageTime);
             
             let html = '';
@@ -362,7 +396,6 @@
             document.getElementById('chatUserName').innerText = username;
             document.getElementById('chatContainer').style.display = 'flex';
             
-            // Tandai chat sudah dibaca
             const chatRoomId = `chat_${userId}_${currentAdmin}`;
             update(ref(db, `bizzy_chats/${chatRoomId}`), { 
                 unreadAdmin: false,
@@ -422,12 +455,11 @@
                 isAdmin: true
             });
             
-            // Update last message
             update(ref(db, `bizzy_chats/${chatRoomId}`), {
                 lastMessage: text,
                 lastMessageTime: Date.now(),
                 lastSender: currentAdminName,
-                unreadUser: true  // Tandai user belum membaca
+                unreadUser: true
             });
             
             input.value = '';
@@ -442,11 +474,11 @@
             window.location.href = 'admin.html';
         }
 
-        // Auto refresh user list setiap 5 detik
         setInterval(() => {
             loadUserList();
         }, 5000);
 
+        await loadCustomTheme();
         loadUserList();
         window.goBack = goBack;
         window.sendAdminMessage = sendAdminMessage;
