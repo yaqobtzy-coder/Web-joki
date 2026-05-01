@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Form Order | Bizzy Impact Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            z-index: -1;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .form-card {
+            background: rgba(15, 15, 35, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 48px;
+            padding: 32px 28px;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .logo p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-align: center;
+        }
+        .product-info {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .product-info .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .product-info .product-price {
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            color: white;
+            font-size: 1rem;
+        }
+        .form-group textarea {
+            resize: none;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(95deg, #FFD700, #FF8C00);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #0a0a1a;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 40px;
+            font-weight: 600;
+            color: #ffd700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-method {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .login-method-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 30px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .login-method-btn.active {
+            background: #ffd700;
+            color: #1a1a2e;
+            border-color: #ffd700;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            z-index: 2000;
+            border-left: 4px solid #ffd700;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        .loading-overlay.show { display: flex; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,215,0,0.3);
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .queue-info {
+            background: rgba(255,215,0,0.1);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .queue-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffd700;
+        }
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        .payment-modal.active {
+            display: flex;
+        }
+        .payment-card {
+            background: #1a1a2e;
+            border-radius: 32px;
+            padding: 28px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .qris-image {
+            width: 100%;
+            max-width: 250px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+        }
+        .countdown {
+            font-size: 0.8rem;
+            color: #ffc107;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="logo">
+                <h1><i class="fas fa-crown"></i> Bizzy Impact</h1>
+                <p>FORM ORDER JOKI</p>
+            </div>
+
+            <!-- Queue Info -->
+            <div class="queue-info" id="queueInfo">
+                <i class="fas fa-hourglass-half"></i> Total Antrian Saat Ini: 
+                <span class="queue-number" id="currentQueue">0</span>
+            </div>
+
+            <div class="product-info" id="productInfo">
+                <div class="product-name" id="productName">-</div>
+                <div class="product-price" id="productPrice">Rp 0</div>
+            </div>
+
+            <!-- Pilihan Login Method -->
+            <div class="form-group">
+                <label><i class="fas fa-sign-in-alt"></i> Metode Login</label>
+                <div class="login-method" id="loginMethod">
+                    <div class="login-method-btn" data-method="hoyoverse">HoYoverse</div>
+                    <div class="login-method-btn" data-method="facebook">Facebook</div>
+                    <div class="login-method-btn" data-method="apple">Apple</div>
+                    <div class="login-method-btn" data-method="twitter">Twitter (X)</div>
+                    <div class="login-method-btn" data-method="google">Google</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email / Username</label>
+                <input type="text" id="loginEmail" placeholder="Masukkan email atau username">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan password">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-phone"></i> Nomor Telepon (WA)</label>
+                <input type="tel" id="phoneNumber" placeholder="Contoh: 6281234567890">
+            </div>
+
+            <!-- Pilihan Admin -->
+            <div class="form-group">
+                <label><i class="fas fa-user-tie"></i> Pilih Admin Tujuan</label>
+                <select id="adminSelect">
+                    <option value="6281772352832">Admin 1 - +62 817-7235-2832</option>
+                    <option value="6285794545996">Admin 2 - +62 857-9454-5996</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-link"></i> Link Bukti Transfer (Catbox/GDrive)</label>
+                <input type="url" id="proofLink" placeholder="https://catbox.moe/xxxxx.jpg">
+                <small style="font-size:0.6rem; opacity:0.6;">Upload bukti TF ke catbox.moe, lalu paste linknya</small>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Catatan Tambahan (opsional)</label>
+                <textarea id="notes" rows="2" placeholder="Tulis catatan jika ada..."></textarea>
+            </div>
+
+            <button class="btn-primary" id="submitBtn">
+                <i class="fas fa-qrcode"></i> BAYAR SEKARANG
+            </button>
+            <button class="btn-secondary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-card">
+            <div id="paymentStatusIcon" style="width:80px;height:80px;background:#ffc107;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <i class="fas fa-clock" style="font-size:3rem;color:#1a1a2e;"></i>
+            </div>
+            <h3 id="paymentTitle">Menunggu Pembayaran</h3>
+            <p id="paymentMessage" style="margin:16px 0; font-size:0.85rem;">Scan QRIS di bawah untuk membayar</p>
+            <img id="qrisImage" class="qris-image" src="">
+            <div style="background:rgba(0,0,0,0.3); border-radius:20px; padding:12px; margin:16px 0; text-align:left;">
+                <p><strong>ID Transaksi:</strong> <span id="transaksiId">-</span></p>
+                <p><strong>Total Bayar:</strong> <span id="totalBayar">Rp 0</span></p>
+                <p><strong>Produk:</strong> <span id="paymentProduct">-</span></p>
+            </div>
+            <div id="countdownArea" class="countdown"></div>
+            <button id="checkPaymentBtn" style="width:100%; padding:14px; background:#ffd700; border:none; border-radius:40px; font-weight:bold; margin-bottom:10px;">Cek Status Pembayaran</button>
+            <button id="closePaymentBtn" style="width:100%; padding:14px; background:transparent; border:1px solid #ffd700; border-radius:40px; color:#ffd700; cursor:pointer;">Tutup</button>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top:20px;">Memproses...</p>
+    </div>
+
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUHSGJ2Yaet7ue1x8WLcHn6LI627SINqg",
+            authDomain: "rayy-digital-store.firebaseapp.com",
+            databaseURL: "https://rayy-digital-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rayy-digital-store",
+            storageBucket: "rayy-digital-store.firebasestorage.app",
+            messagingSenderId: "537690791174",
+            appId: "1:537690791174:web:c29f7cdfcae0506b6e1287"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, get, set, push, update } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const ZAKI_API_URL = 'https://qris.zakki.store/topup';
+        const ZAKI_CHECK_URL = 'https://qris.zakki.store/cektopup';
+        const ZAKI_TOKEN = '13db95d8e39ea2';
+
+        let orderData = null;
+        let selectedMethod = 'hoyoverse';
+        let pendingTransaction = null;
+        let checkInterval = null;
+        let currentQueueNumber = 0;
+
+        function showToast(msg) {
+            let toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function showLoading() { document.getElementById("loadingOverlay").classList.add("show"); }
+        function hideLoading() { document.getElementById("loadingOverlay").classList.remove("show"); }
+
+        // Load queue number
+        async function loadQueueNumber() {
+            const ordersRef = ref(db, 'bizzy_orders');
+            const snapshot = await get(ordersRef);
+            const orders = snapshot.val();
+            let pendingCount = 0;
+            if (orders) {
+                pendingCount = Object.values(orders).filter(o => o.status === 'pending' || o.status === 'processing').length;
+            }
+            currentQueueNumber = pendingCount + 1;
+            document.getElementById('currentQueue').innerText = currentQueueNumber;
+            return currentQueueNumber;
+        }
+
+        function loadData() {
+            const product = localStorage.getItem('bizzy_order_product');
+            const price = localStorage.getItem('bizzy_order_price');
+            const username = localStorage.getItem('bizzy_username');
+            const userId = localStorage.getItem('bizzy_userId');
+
+            if (!product || !price) {
+                showToast("Data pesanan tidak ditemukan!");
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                return;
+            }
+
+            orderData = {
+                productName: product,
+                productPrice: parseInt(price),
+                username: username,
+                userId: userId
+            };
+
+            document.getElementById('productName').innerText = product;
+            document.getElementById('productPrice').innerText = 'Rp ' + parseInt(price).toLocaleString();
+        }
+
+        // Login method selection
+        document.querySelectorAll('.login-method-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.login-method-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedMethod = btn.getAttribute('data-method');
+            });
+        });
+
+        async function createPayment() {
+            showLoading();
+            try {
+                const response = await fetch(ZAKI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: ZAKI_TOKEN, nominal: orderData.productPrice })
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.code === 201 && result.status === "success") {
+                    pendingTransaction = result.data;
+                    
+                    document.getElementById('qrisImage').src = pendingTransaction.qris_image;
+                    document.getElementById('transaksiId').innerText = pendingTransaction.id_transaksi;
+                    document.getElementById('totalBayar').innerHTML = `Rp ${pendingTransaction.rincian.total_bayar.toLocaleString()}`;
+                    document.getElementById('paymentProduct').innerText = orderData.productName;
+                    document.getElementById('paymentModal').classList.add('active');
+                    
+                    startAutoCheck();
+                    
+                    if (pendingTransaction.expired_at) {
+                        startCountdown(new Date(pendingTransaction.expired_at));
+                    }
+                } else {
+                    showToast("Gagal membuat QRIS: " + (result.message || "Silakan coba lagi"));
+                }
+            } catch (error) {
+                hideLoading();
+                showToast("Error koneksi ke payment gateway!");
+            }
+        }
+
+        function startAutoCheck() {
+            if (checkInterval) clearInterval(checkInterval);
+            let checkCount = 0;
+            checkInterval = setInterval(async () => {
+                checkCount++;
+                if (checkCount > 30 || !pendingTransaction) {
+                    clearInterval(checkInterval);
+                    return;
+                }
+                await autoCheckStatus();
+            }, 5000);
+        }
+
+        async function autoCheckStatus() {
+            if (!pendingTransaction || !pendingTransaction.id_transaksi) return;
+            
+            try {
+                const response = await fetch(`${ZAKI_CHECK_URL}?idtopup=${pendingTransaction.id_transaksi}`);
+                const result = await response.json();
+                
+                if (result.code === 200 && result.kategori_status === "SUCCESS") {
+                    clearInterval(checkInterval);
+                    await processSuccess();
+                }
+            } catch (error) {
+                console.error("Auto check error:", error);
+            }
+        }
+
+        async function checkPaymentStatus() {
+            if (!pendingTransaction || !pendingTransaction.id_transaksi) {
+                showToast("Tidak ada transaksi pending!");
+                return;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch(`${ZAKI_CHECK_URL}?idtopup=${pendingTransaction.id_transaksi}`);
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.code === 200 && result.kategori_status === "SUCCESS") {
+                    clearInterval(checkInterval);
+                    await processSuccess();
+                } else if (result.kategori_status === "PENDING") {
+                    showToast("⏳ Pembayaran masih pending. Silakan selesaikan pembayaran.");
+                } else {
+                    showToast("❌ Pembayaran belum terdeteksi. Silakan scan QRIS dan bayar.");
+                }
+            } catch (error) {
+                hideLoading();
+                showToast("Error mengecek status pembayaran!");
+            }
+        }
+
+        async function processSuccess() {
+            // Get queue number
+            const queueNumber = currentQueueNumber;
+            
+            // Get form data
+            const loginEmail = document.getElementById('loginEmail').value.trim();
+            const loginPassword = document.getElementById('loginPassword').value;
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const adminSelect = document.getElementById('adminSelect').value;
+            const proofLink = document.getElementById('proofLink').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            if (!loginEmail) {
+                showToast("Masukkan Email/Username!");
+                return;
+            }
+            if (!loginPassword) {
+                showToast("Masukkan Password!");
+                return;
+            }
+            if (!phoneNumber) {
+                showToast("Masukkan Nomor Telepon!");
+                return;
+            }
+            if (!proofLink) {
+                showToast("Masukkan Link Bukti Transfer!");
+                return;
+            }
+
+            const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            
+            const order = {
+                orderId: orderId,
+                userId: orderData.userId,
+                username: orderData.username,
+                productName: orderData.productName,
+                productPrice: orderData.productPrice,
+                transactionId: pendingTransaction.id_transaksi,
+                paymentAmount: pendingTransaction.rincian.total_bayar,
+                loginMethod: selectedMethod,
+                loginEmail: loginEmail,
+                loginPassword: loginPassword,
+                phoneNumber: phoneNumber,
+                adminTarget: adminSelect,
+                proofLink: proofLink,
+                notes: notes,
+                queueNumber: queueNumber,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            await push(ref(db, 'bizzy_orders'), order);
+            
+            // Send notification to admin via Telegram (opsional)
+            try {
+                const adminPhone = adminSelect === '6281772352832' ? '6281772352832' : '6285794545996';
+                await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: '7966336512',
+                        text: `📋 *PESANAN BARU BIZZY IMPACT*\n\n👤 User: ${orderData.username}\n📦 Produk: ${orderData.productName}\n💰 Harga: Rp ${orderData.productPrice}\n📱 WA: ${phoneNumber}\n🆔 Queue: ${queueNumber}\n📊 Status: Menunggu Konfirmasi`,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            } catch(e) {}
+
+            localStorage.setItem('bizzy_last_order', JSON.stringify(order));
+            document.getElementById('paymentModal').classList.remove('active');
+            window.location.href = 'success.html';
+        }
+
+        function startCountdown(expiredTime) {
+            const countdownArea = document.getElementById('countdownArea');
+            const interval = setInterval(() => {
+                const now = new Date();
+                const diff = expiredTime - now;
+                
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    countdownArea.innerHTML = '<i class="fas fa-clock"></i> QRIS telah kadaluarsa. Silakan buat pesanan baru.';
+                } else {
+                    const minutes = Math.floor(diff / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    countdownArea.innerHTML = `<i class="fas fa-hourglass-half"></i> Sisa waktu: ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const loginEmail = document.getElementById('loginEmail').value.trim();
+            const loginPassword = document.getElementById('loginPassword').value;
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const proofLink = document.getElementById('proofLink').value.trim();
+
+            if (!loginEmail) {
+                showToast("Masukkan Email/Username!");
+                return;
+            }
+            if (!loginPassword) {
+                showToast("Masukkan Password!");
+                return;
+            }
+            if (!phoneNumber) {
+                showToast("Masukkan Nomor Telepon!");
+                return;
+            }
+            if (!proofLink) {
+                showToast("Masukkan Link Bukti Transfer!");
+                return;
+            }
+
+            await loadQueueNumber();
+            createPayment();
+        });
+
+        document.getElementById('checkPaymentBtn').addEventListener('click', checkPaymentStatus);
+        document.getElementById('closePaymentBtn').addEventListener('click', () => {
+            document.getElementById('paymentModal').classList.remove('active');
+            if (checkInterval) clearInterval(checkInterval);
+        });
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        loadQueueNumber();
+        loadData();
+    </script>
+</body>
+</html>

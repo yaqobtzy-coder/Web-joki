@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sukses | Bizzy Impact Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            z-index: -1;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-card {
+            background: rgba(15, 15, 35, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 48px;
+            padding: 40px 28px;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            width: 100%;
+            text-align: center;
+        }
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .ceklis {
+            width: 100px;
+            height: 100px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease;
+        }
+        .ceklis i { font-size: 4rem; color: white; }
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .success-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #28a745;
+            margin-bottom: 16px;
+        }
+        .success-message {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .transaction-details {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .transaction-details p { margin-bottom: 8px; font-size: 0.85rem; }
+        .transaction-details .label { opacity: 0.6; }
+        .transaction-details .value { font-weight: 600; color: #ffd700; }
+        .info-box {
+            background: rgba(255,215,0,0.1);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 0.8rem;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(95deg, #25D366, #128C7E);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 40px;
+            font-weight: 600;
+            color: #ffd700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .countdown {
+            font-size: 0.8rem;
+            color: #ffc107;
+            margin-top: 16px;
+        }
+        .warning-box {
+            background: rgba(255,193,7,0.15);
+            border-left: 3px solid #ffc107;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="success-card">
+            <div class="logo">
+                <h1><i class="fas fa-crown"></i> Bizzy Impact</h1>
+                <p>ORDER BERHASIL</p>
+            </div>
+
+            <div class="ceklis">
+                <i class="fas fa-check"></i>
+            </div>
+
+            <div class="success-title">Pesanan Berhasil!</div>
+            <div class="success-message" id="successMessage">
+                Terima kasih telah menggunakan jasa Bizzy Impact Official.
+            </div>
+
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> <strong>Sebelum anda ke WhatsApp, silahkan SS bukti TF/sukses ini lalu silahkan pencet tombol di bawah ini beserta bukti TF.</strong><br>
+                Terima kasih 🙏
+            </div>
+
+            <div class="transaction-details">
+                <p><span class="label">Produk:</span> <span id="detailProduct" class="value">-</span></p>
+                <p><span class="label">Total Bayar:</span> <span id="detailAmount" class="value">Rp 0</span></p>
+                <p><span class="label">ID Transaksi:</span> <span id="detailTransactionId" class="value">-</span></p>
+                <p><span class="label">Tanggal:</span> <span id="detailDate" class="value">-</span></p>
+                <p><span class="label">Antrian:</span> <span id="detailQueue" class="value">-</span></p>
+                <p><span class="label">Status:</span> <span id="detailStatus" class="value">Menunggu Konfirmasi Admin</span></p>
+            </div>
+
+            <button class="btn-primary" id="confirmBtn">
+                <i class="fab fa-whatsapp"></i> KONFIRMASI KE ADMIN
+            </button>
+            <button class="btn-secondary" onclick="goToHome()">
+                <i class="fas fa-home"></i> Kembali ke Beranda
+            </button>
+
+            <div class="countdown" id="countdownArea"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUHSGJ2Yaet7ue1x8WLcHn6LI627SINqg",
+            authDomain: "rayy-digital-store.firebaseapp.com",
+            databaseURL: "https://rayy-digital-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rayy-digital-store",
+            storageBucket: "rayy-digital-store.firebasestorage.app",
+            messagingSenderId: "537690791174",
+            appId: "1:537690791174:web:c29f7cdfcae0506b6e1287"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let lastOrder = null;
+        let adminNumber = '6281772352832';
+
+        async function loadData() {
+            const orderData = localStorage.getItem('bizzy_last_order');
+            if (orderData) {
+                lastOrder = JSON.parse(orderData);
+                document.getElementById('detailProduct').innerText = lastOrder.productName;
+                document.getElementById('detailAmount').innerText = 'Rp ' + lastOrder.productPrice.toLocaleString();
+                document.getElementById('detailTransactionId').innerText = lastOrder.transactionId || '-';
+                document.getElementById('detailDate').innerText = new Date().toLocaleString();
+                document.getElementById('detailQueue').innerText = lastOrder.queueNumber || '-';
+                
+                // Get admin number from order
+                if (lastOrder.adminTarget) {
+                    adminNumber = lastOrder.adminTarget;
+                }
+            } else {
+                document.getElementById('detailProduct').innerText = '-';
+                document.getElementById('detailAmount').innerText = 'Rp 0';
+                document.getElementById('detailTransactionId').innerText = '-';
+            }
+        }
+
+        document.getElementById('confirmBtn').addEventListener('click', () => {
+            const product = document.getElementById('detailProduct').innerText;
+            const amount = document.getElementById('detailAmount').innerText;
+            const transId = document.getElementById('detailTransactionId').innerText;
+            const queue = document.getElementById('detailQueue').innerText;
+            
+            const message = `Halo Admin Bizzy Impact, saya ingin konfirmasi pesanan saya:
+
+📦 Produk: ${product}
+💰 Total: ${amount}
+🆔 ID Transaksi: ${transId}
+🎫 Antrian: ${queue}
+
+Mohon segera diproses. Terima kasih.`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${adminNumber}?text=${encodedMessage}`, '_blank');
+        });
+
+        function goToHome() {
+            localStorage.removeItem('bizzy_last_order');
+            localStorage.removeItem('bizzy_order_product');
+            localStorage.removeItem('bizzy_order_price');
+            window.location.href = 'index.html';
+        }
+
+        // Countdown redirect
+        let seconds = 10;
+        const countdownArea = document.getElementById('countdownArea');
+        const interval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                goToHome();
+            } else {
+                countdownArea.innerHTML = `⏰ Akan diarahkan ke beranda dalam ${seconds} detik...`;
+            }
+        }, 1000);
+
+        loadData();
+        window.goToHome = goToHome;
+    </script>
+</body>
+</html>

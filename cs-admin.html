@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Admin CS | Bizzy Impact Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10,10,30,0.85), rgba(0,0,0,0.92));
+            z-index: -1;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a3a, #0f0f2a);
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .header h1 {
+            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Daftar Chat User */
+        .user-list {
+            background: rgba(0,0,0,0.4);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .user-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-item:hover {
+            background: rgba(255,215,0,0.15);
+        }
+        .user-item.active {
+            background: rgba(255,215,0,0.25);
+            border-left: 3px solid #ffd700;
+        }
+        .user-name {
+            font-weight: bold;
+        }
+        .user-last-msg {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .unread-badge {
+            background: #ff5722;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+        
+        /* Chat Room */
+        .chat-container {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            height: 50vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            padding: 14px 16px;
+            background: rgba(0,0,0,0.5);
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+            text-align: center;
+            font-weight: bold;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .chat-message.admin {
+            background: linear-gradient(95deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message.user {
+            background: rgba(255,255,255,0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-username {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+        .chat-time {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            text-align: right;
+            margin-top: 4px;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px;
+            background: rgba(0,0,0,0.5);
+            border-top: 1px solid rgba(255,215,0,0.2);
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 30px;
+            color: white;
+        }
+        .chat-input-area button {
+            background: #ffd700;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #1a1a2e;
+        }
+        
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 40px;
+            font-weight: 600;
+            color: #ffd700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            z-index: 2000;
+            border-left: 4px solid #ffd700;
+        }
+        .admin-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .admin-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 30px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .admin-btn.active {
+            background: #ffd700;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-headset"></i> Admin Customer Service</h1>
+            <p>Balas chat user</p>
+        </div>
+
+        <!-- Pilih Admin (Admin 1 atau Admin 2) -->
+        <div class="admin-selector">
+            <div class="admin-btn active" data-admin="admin1">👨‍💼 Admin 1</div>
+            <div class="admin-btn" data-admin="admin2">👨‍💼 Admin 2</div>
+        </div>
+
+        <!-- Daftar User yang Chat -->
+        <div class="user-list" id="userList">
+            <div style="text-align:center; padding:20px;">Memuat daftar user...</div>
+        </div>
+
+        <!-- Chat Room -->
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-header">
+                <i class="fas fa-comments"></i> Chat dengan: <span id="chatUserName">-</span>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div style="text-align:center; padding:20px;">Pilih user untuk memulai chat</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Ketik pesan balasan...">
+                <button onclick="sendAdminMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <button class="btn-secondary" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </button>
+    </div>
+
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUHSGJ2Yaet7ue1x8WLcHn6LI627SINqg",
+            authDomain: "rayy-digital-store.firebaseapp.com",
+            databaseURL: "https://rayy-digital-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rayy-digital-store",
+            storageBucket: "rayy-digital-store.firebasestorage.app",
+            messagingSenderId: "537690791174",
+            appId: "1:537690791174:web:c29f7cdfcae0506b6e1287"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, get, push, onValue, set, update, query, orderByChild } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentAdmin = "admin1";
+        let currentAdminName = "Admin 1";
+        let selectedUserId = null;
+        let selectedUsername = null;
+        let chatRef = null;
+
+        function showToast(msg) {
+            let toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Pilih Admin
+        document.querySelectorAll('.admin-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentAdmin = btn.getAttribute('data-admin');
+                currentAdminName = currentAdmin === 'admin1' ? 'Admin 1' : 'Admin 2';
+                loadUserList();
+                selectedUserId = null;
+                document.getElementById('chatContainer').style.display = 'none';
+            });
+        });
+
+        // Load daftar user yang pernah chat
+        async function loadUserList() {
+            const chatsRef = ref(db, 'bizzy_chats');
+            const snapshot = await get(chatsRef);
+            const chats = snapshot.val();
+            
+            if (!chats) {
+                document.getElementById('userList').innerHTML = '<div style="text-align:center; padding:20px;">Belum ada user yang chat</div>';
+                return;
+            }
+
+            // Cari semua chat room untuk admin ini
+            const userMap = new Map();
+            
+            for (const [chatId, chatData] of Object.entries(chats)) {
+                // Format chatId: chat_userId_admin1
+                if (chatId.includes(`_${currentAdmin}`)) {
+                    const userId = chatId.replace(`_${currentAdmin}`, '').replace('chat_', '');
+                    
+                    // Ambil username dari database users
+                    let username = userId;
+                    try {
+                        const userRef = ref(db, `bizzy_users/${userId}`);
+                        const userSnap = await get(userRef);
+                        if (userSnap.exists()) {
+                            username = userSnap.val().username;
+                        }
+                    } catch(e) {}
+                    
+                    const lastMessage = chatData.lastMessage || '';
+                    const lastMessageTime = chatData.lastMessageTime || 0;
+                    const unread = chatData.unreadAdmin || false;
+                    
+                    userMap.set(userId, {
+                        userId: userId,
+                        username: username,
+                        lastMessage: lastMessage,
+                        lastMessageTime: lastMessageTime,
+                        unread: unread && unread !== currentAdmin
+                    });
+                }
+            }
+            
+            if (userMap.size === 0) {
+                document.getElementById('userList').innerHTML = '<div style="text-align:center; padding:20px;">Belum ada user yang chat ke admin ini</div>';
+                return;
+            }
+            
+            // Urutkan berdasarkan lastMessageTime terbaru
+            const users = Array.from(userMap.values()).sort((a,b) => b.lastMessageTime - a.lastMessageTime);
+            
+            let html = '';
+            for (const user of users) {
+                html += `
+                    <div class="user-item" onclick="selectUser('${user.userId}', '${escapeHtml(user.username)}')">
+                        <div>
+                            <div class="user-name">${escapeHtml(user.username)}</div>
+                            <div class="user-last-msg">${escapeHtml(user.lastMessage.substring(0, 30))}</div>
+                        </div>
+                        ${user.unread ? '<span class="unread-badge">Baru</span>' : ''}
+                    </div>
+                `;
+            }
+            document.getElementById('userList').innerHTML = html;
+        }
+
+        window.selectUser = function(userId, username) {
+            selectedUserId = userId;
+            selectedUsername = username;
+            document.getElementById('chatUserName').innerText = username;
+            document.getElementById('chatContainer').style.display = 'flex';
+            
+            // Tandai chat sudah dibaca
+            const chatRoomId = `chat_${userId}_${currentAdmin}`;
+            update(ref(db, `bizzy_chats/${chatRoomId}`), { 
+                unreadAdmin: false,
+                lastRead: Date.now()
+            });
+            
+            loadChatMessages();
+        };
+
+        function loadChatMessages() {
+            if (!selectedUserId) return;
+            
+            const chatRoomId = `chat_${selectedUserId}_${currentAdmin}`;
+            chatRef = ref(db, `bizzy_chats/${chatRoomId}/messages`);
+            
+            onValue(chatRef, (snapshot) => {
+                const messages = snapshot.val();
+                const container = document.getElementById('chatMessages');
+                
+                if (!messages) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px;">Belum ada pesan</div>';
+                    return;
+                }
+                
+                const msgs = Object.values(messages).sort((a,b) => a.timestamp - b.timestamp);
+                container.innerHTML = msgs.map(msg => `
+                    <div class="chat-message ${msg.senderId === selectedUserId ? 'user' : 'admin'}">
+                        <div class="chat-username">${escapeHtml(msg.senderName)} ${msg.senderId === selectedUserId ? '(User)' : '(Anda)'}</div>
+                        <div>${escapeHtml(msg.text)}</div>
+                        <div class="chat-time">${new Date(msg.timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>
+                    </div>
+                `).join('');
+                
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        window.sendAdminMessage = function() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            if (!selectedUserId) {
+                showToast("Pilih user terlebih dahulu!");
+                return;
+            }
+            
+            const chatRoomId = `chat_${selectedUserId}_${currentAdmin}`;
+            const messageRef = ref(db, `bizzy_chats/${chatRoomId}/messages`);
+            
+            push(messageRef, {
+                senderId: currentAdmin,
+                senderName: currentAdminName,
+                text: text,
+                timestamp: Date.now(),
+                read: false,
+                isAdmin: true
+            });
+            
+            // Update last message
+            update(ref(db, `bizzy_chats/${chatRoomId}`), {
+                lastMessage: text,
+                lastMessageTime: Date.now(),
+                lastSender: currentAdminName,
+                unreadUser: true  // Tandai user belum membaca
+            });
+            
+            input.value = '';
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        }
+
+        function goBack() {
+            window.location.href = 'admin.html';
+        }
+
+        // Auto refresh user list setiap 5 detik
+        setInterval(() => {
+            loadUserList();
+        }, 5000);
+
+        loadUserList();
+        window.goBack = goBack;
+        window.sendAdminMessage = sendAdminMessage;
+    </script>
+</body>
+</html>

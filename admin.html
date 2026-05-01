@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Bizzy Impact Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a3a, #0f0f2a);
+            border-radius: 30px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .header h1 {
+            background: linear-gradient(135deg, #FFD966, #FF8C00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card i { font-size: 1.8rem; color: #ffd700; margin-bottom: 8px; }
+        .stat-card .value { font-size: 1.5rem; font-weight: 800; }
+        .stat-card .label { font-size: 0.7rem; opacity: 0.7; }
+        .section {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+            padding-bottom: 8px;
+        }
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab-btn.active { background: #ffd700; color: #1a1a2e; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .order-card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffc107;
+        }
+        .order-card.processing { border-left-color: #17a2b8; }
+        .order-card.completed { border-left-color: #28a745; }
+        .order-card.cancelled { border-left-color: #dc3545; }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .status-pending { background: #ffc107; color: #1a1a2e; }
+        .status-processing { background: #17a2b8; color: white; }
+        .status-completed { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .order-details {
+            font-size: 0.75rem;
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-success {
+            background: #28a745;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: #dc3545;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-warning {
+            background: #ffc107;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #1a1a2e;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: linear-gradient(95deg, #ff9800, #ff5722);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.8rem; opacity: 0.8; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            color: white;
+        }
+        .slide-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .slide-preview {
+            width: 60px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            z-index: 2000;
+            border-left: 4px solid #ffd700;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        .loading-overlay.show { display: flex; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,215,0,0.3);
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .time-settings {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .time-settings input {
+            width: 100px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-round {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+        .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-round { background-color: #ffd700; }
+        input:checked + .slider-round:before { transform: translateX(26px); }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header">
+            <h1><i class="fas fa-user-shield"></i> Bizzy Impact - Admin Panel</h1>
+            <p>Manajemen Pesanan, Slider, Jam Operasional</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><i class="fas fa-clock"></i><div class="value" id="totalPending">0</div><div class="label">Pending</div></div>
+            <div class="stat-card"><i class="fas fa-spinner"></i><div class="value" id="totalProcessing">0</div><div class="label">Processing</div></div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><div class="value" id="totalCompleted">0</div><div class="label">Completed</div></div>
+            <div class="stat-card"><i class="fas fa-users"></i><div class="value" id="totalUsers">0</div><div class="label">Total User</div></div>
+            <div class="stat-card"><i class="fas fa-chart-line"></i><div class="value" id="totalOrders">0</div><div class="label">Total Orders</div></div>
+        </div>
+
+        <div class="tab-menu">
+            <div class="tab-btn active" data-tab="orders">📋 Pesanan</div>
+            <div class="tab-btn" data-tab="schedule">⏰ Jadwal Buka/Tutup</div>
+            <div class="tab-btn" data-tab="sliders">🖼️ Slider</div>
+            <div class="tab-btn" data-tab="users">👥 User</div>
+        </div>
+
+        <!-- TAB ORDERS -->
+        <div id="tab-orders" class="tab-pane active">
+            <div class="section">
+                <h3><i class="fas fa-list"></i> Daftar Pesanan</h3>
+                <div id="ordersList"></div>
+            </div>
+        </div>
+
+        <!-- TAB SCHEDULE -->
+        <div id="tab-schedule" class="tab-pane">
+            <div class="section">
+                <h3><i class="fas fa-clock"></i> Jadwal Operasional Web</h3>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <span>Tutup Web Manual:</span>
+                        <label class="switch">
+                            <input type="checkbox" id="manualCloseToggle">
+                            <span class="slider-round"></span>
+                        </label>
+                        <span id="manualCloseStatus">Normal</span>
+                    </label>
+                </div>
+                <div class="time-settings">
+                    <div class="form-group">
+                        <label>Jam Tutup (Mulai)</label>
+                        <input type="time" id="closeTime" value="23:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Buka (Kembali)</label>
+                        <input type="time" id="openTime" value="08:00">
+                    </div>
+                </div>
+                <button class="btn-primary" id="saveScheduleBtn">Simpan Jadwal</button>
+                <div style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                    <p><i class="fas fa-info-circle"></i> Web akan otomatis tutup pada jam yang ditentukan dan buka kembali sesuai jadwal.</p>
+                    <p id="scheduleStatus" style="margin-top: 8px; color: #ffd700;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB SLIDERS -->
+        <div id="tab-sliders" class="tab-pane">
+            <div class="section">
+                <h3><i class="fas fa-images"></i> Manajemen Slider</h3>
+                <div id="slidesList"></div>
+                <div style="margin-top: 20px;">
+                    <input type="text" id="slideImageUrl" placeholder="URL Gambar Slide" style="width:100%; padding:12px; margin-bottom:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:16px; color:white;">
+                    <button class="btn-primary" id="addSlideBtn">+ Tambah Slide</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB USERS -->
+        <div id="tab-users" class="tab-pane">
+            <div class="section">
+                <h3><i class="fas fa-users"></i> Daftar User</h3>
+                <div id="usersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top:20px;">Memproses...</p>
+    </div>
+
+    <script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUHSGJ2Yaet7ue1x8WLcHn6LI627SINqg",
+            authDomain: "rayy-digital-store.firebaseapp.com",
+            databaseURL: "https://rayy-digital-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rayy-digital-store",
+            storageBucket: "rayy-digital-store.firebasestorage.app",
+            messagingSenderId: "537690791174",
+            appId: "1:537690791174:web:c29f7cdfcae0506b6e1287"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, get, set, push, remove, onValue, update } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let adminId = localStorage.getItem("bizzy_userId");
+        let adminUsername = localStorage.getItem("bizzy_username");
+
+        function showToast(msg) {
+            let toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function showLoading() { document.getElementById("loadingOverlay").classList.add("show"); }
+        function hideLoading() { document.getElementById("loadingOverlay").classList.remove("show"); }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        }
+
+        // Cek akses admin (hanya user dengan username admin)
+        async function checkAdminAccess() {
+            if (!adminId) {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;"><i class="fas fa-lock" style="font-size:4rem;color:#ffd700;"></i><h2>Akses Ditolak!</h2><p>Silakan login sebagai admin.</p><a href="index.html" style="color:#ffd700;">Kembali ke Beranda</a></div>';
+                return false;
+            }
+            
+            const userRef = ref(db, `bizzy_users/${adminId}`);
+            const snapshot = await get(userRef);
+            const userData = snapshot.val();
+            
+            // Cek apakah user adalah admin (bisa ditambahkan manual di database atau berdasarkan username)
+            if (!userData || (userData.username !== 'admin' && userData.username !== 'bizzyadmin')) {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;"><i class="fas fa-lock" style="font-size:4rem;color:#ffd700;"></i><h2>Akses Ditolak!</h2><p>Hanya admin yang bisa mengakses panel ini.</p><a href="index.html" style="color:#ffd700;">Kembali ke Beranda</a></div>';
+                return false;
+            }
+            return true;
+        }
+
+        // ==================== STATISTIK ====================
+        async function updateStats() {
+            const ordersRef = ref(db, 'bizzy_orders');
+            const snapshot = await get(ordersRef);
+            const orders = snapshot.val();
+            
+            let pending = 0, processing = 0, completed = 0, total = 0;
+            if (orders) {
+                const values = Object.values(orders);
+                total = values.length;
+                pending = values.filter(o => o.status === 'pending').length;
+                processing = values.filter(o => o.status === 'processing').length;
+                completed = values.filter(o => o.status === 'completed').length;
+            }
+            
+            const usersRef = ref(db, 'bizzy_users');
+            const usersSnap = await get(usersRef);
+            const totalUsers = usersSnap.val() ? Object.keys(usersSnap.val()).length : 0;
+            
+            document.getElementById('totalPending').innerText = pending;
+            document.getElementById('totalProcessing').innerText = processing;
+            document.getElementById('totalCompleted').innerText = completed;
+            document.getElementById('totalOrders').innerText = total;
+            document.getElementById('totalUsers').innerText = totalUsers;
+        }
+
+        // ==================== ORDERS ====================
+        function loadOrders() {
+            onValue(ref(db, 'bizzy_orders'), (snapshot) => {
+                const orders = snapshot.val();
+                const container = document.getElementById('ordersList');
+                
+                if (!orders) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;">Belum ada pesanan</div>';
+                    updateStats();
+                    return;
+                }
+                
+                const ordersArray = Object.entries(orders).sort((a,b) => new Date(b[1].createdAt) - new Date(a[1].createdAt));
+                
+                let html = '';
+                for (const [id, order] of ordersArray) {
+                    let statusClass = '';
+                    let statusText = '';
+                    let statusBadge = '';
+                    
+                    if (order.status === 'pending') {
+                        statusClass = 'pending';
+                        statusBadge = '<span class="status-badge status-pending">⏳ PENDING</span>';
+                    } else if (order.status === 'processing') {
+                        statusClass = 'processing';
+                        statusBadge = '<span class="status-badge status-processing">⚙️ PROCESSING</span>';
+                    } else if (order.status === 'completed') {
+                        statusClass = 'completed';
+                        statusBadge = '<span class="status-badge status-completed">✅ COMPLETED</span>';
+                    } else {
+                        statusClass = 'cancelled';
+                        statusBadge = '<span class="status-badge status-cancelled">❌ CANCELLED</span>';
+                    }
+                    
+                    html += `
+                        <div class="order-card ${statusClass}">
+                            <div class="order-header">
+                                <strong>${escapeHtml(order.username)}</strong>
+                                ${statusBadge}
+                            </div>
+                            <div class="order-details">
+                                📦 Produk: ${escapeHtml(order.productName)}<br>
+                                💰 Total: Rp ${order.productPrice?.toLocaleString() || 0}<br>
+                                🎫 Antrian: ${order.queueNumber || '-'}<br>
+                                🔑 Login Method: ${escapeHtml(order.loginMethod || '-')}<br>
+                                📧 Email/User: ${escapeHtml(order.loginEmail || '-')}<br>
+                                🔑 Password: ${escapeHtml(order.loginPassword || '****')}<br>
+                                📱 WA: ${escapeHtml(order.phoneNumber || '-')}<br>
+                                🔗 Bukti TF: <a href="${escapeHtml(order.proofLink || '#')}" target="_blank" style="color:#ffd700;">Lihat Bukti</a><br>
+                                📝 Catatan: ${escapeHtml(order.notes || '-')}<br>
+                                📅 Dibuat: ${new Date(order.createdAt).toLocaleString()}
+                            </div>
+                            <div class="btn-group">
+                                ${order.status === 'pending' ? `<button class="btn-success" onclick="updateOrderStatus('${id}', 'processing')">✅ ACC & Proses</button>` : ''}
+                                ${order.status === 'processing' ? `<button class="btn-success" onclick="updateOrderStatus('${id}', 'completed')">✅ Selesai</button>` : ''}
+                                ${order.status === 'pending' || order.status === 'processing' ? `<button class="btn-danger" onclick="updateOrderStatus('${id}', 'cancelled')">❌ Tolak/Batal</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+                updateStats();
+            });
+        }
+
+        window.updateOrderStatus = async function(orderId, status) {
+            if (confirm(`Ubah status pesanan menjadi ${status.toUpperCase()}?`)) {
+                await update(ref(db, `bizzy_orders/${orderId}`), { 
+                    status: status, 
+                    updatedAt: new Date().toISOString(),
+                    processedBy: adminUsername || 'admin'
+                });
+                
+                // Kirim notifikasi ke Telegram (opsional)
+                try {
+                    await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: '7966336512',
+                            text: `📋 *UPDATE PESANAN BIZZY IMPACT*\n\n🆔 Order: ${orderId}\n📊 Status: ${status.toUpperCase()}\n👤 Admin: ${adminUsername}`,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                } catch(e) {}
+                
+                showToast(`✅ Status pesanan diubah menjadi ${status.toUpperCase()}`);
+            }
+        };
+
+        // ==================== SCHEDULE (JAM BUKA/TUTUP) ====================
+        async function loadSchedule() {
+            const statusRef = ref(db, 'bizzy_settings/web_status');
+            const snapshot = await get(statusRef);
+            const data = snapshot.val() || {};
+            
+            document.getElementById('closeTime').value = data.closeHour ? `${data.closeHour.toString().padStart(2,'0')}:${(data.closeMinute || 0).toString().padStart(2,'0')}` : '23:00';
+            document.getElementById('openTime').value = data.openHour ? `${data.openHour.toString().padStart(2,'0')}:${(data.openMinute || 0).toString().padStart(2,'0')}` : '08:00';
+            document.getElementById('manualCloseToggle').checked = data.manualClosed || false;
+            document.getElementById('manualCloseStatus').innerText = data.manualClosed ? 'Tutup Manual (Web Tertutup)' : 'Normal (Jadwal Otomatis)';
+            
+            if (data.closeHour && data.openHour) {
+                document.getElementById('scheduleStatus').innerHTML = `🕐 Web akan tutup otomatis pukul ${data.closeHour.toString().padStart(2,'0')}:${(data.closeMinute || 0).toString().padStart(2,'0')} dan buka pukul ${data.openHour.toString().padStart(2,'0')}:${(data.openMinute || 0).toString().padStart(2,'0')}`;
+            }
+        }
+
+        document.getElementById('saveScheduleBtn')?.addEventListener('click', async () => {
+            const closeTime = document.getElementById('closeTime').value;
+            const openTime = document.getElementById('openTime').value;
+            const manualClosed = document.getElementById('manualCloseToggle').checked;
+            
+            const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+            const [openHour, openMinute] = openTime.split(':').map(Number);
+            
+            const scheduleData = {
+                closeHour: closeHour,
+                closeMinute: closeMinute,
+                openHour: openHour,
+                openMinute: openMinute,
+                manualClosed: manualClosed,
+                closed: manualClosed,
+                updatedAt: new Date().toISOString()
+            };
+            
+            await set(ref(db, 'bizzy_settings/web_status'), scheduleData);
+            showToast("✅ Jadwal operasional disimpan!");
+            loadSchedule();
+        });
+
+        // ==================== SLIDERS ====================
+        function loadSliders() {
+            onValue(ref(db, 'bizzy_settings/slides'), (snapshot) => {
+                const slides = snapshot.val();
+                const container = document.getElementById('slidesList');
+                
+                if (!slides) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;">Belum ada slide</div>';
+                    return;
+                }
+                
+                const slidesArray = Object.entries(slides);
+                let html = '';
+                for (const [id, slide] of slidesArray) {
+                    html += `
+                        <div class="slide-item">
+                            <img src="${escapeHtml(slide.imageUrl)}" class="slide-preview" onerror="this.src='https://via.placeholder.com/60x40?text=Error'">
+                            <div style="flex:1; word-break:break-all;">${escapeHtml(slide.imageUrl.substring(0, 50))}...</div>
+                            <button class="btn-danger" onclick="deleteSlide('${id}')">Hapus</button>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            });
+        }
+
+        window.deleteSlide = async function(id) {
+            if (confirm("Hapus slide ini?")) {
+                await remove(ref(db, `bizzy_settings/slides/${id}`));
+                showToast("Slide dihapus!");
+            }
+        };
+
+        document.getElementById('addSlideBtn')?.addEventListener('click', async () => {
+            const imageUrl = document.getElementById('slideImageUrl').value.trim();
+            if (!imageUrl) {
+                showToast("Masukkan URL gambar!");
+                return;
+            }
+            await push(ref(db, 'bizzy_settings/slides'), { imageUrl, createdAt: Date.now() });
+            showToast("Slide ditambahkan!");
+            document.getElementById('slideImageUrl').value = '';
+        });
+
+        // ==================== USERS ====================
+        function loadUsers() {
+            onValue(ref(db, 'bizzy_users'), (snapshot) => {
+                const users = snapshot.val();
+                const container = document.getElementById('usersList');
+                
+                if (!users) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;">Belum ada user</div>';
+                    return;
+                }
+                
+                const usersArray = Object.entries(users);
+                let html = '<div style="overflow-x:auto;">';
+                html += '<table style="width:100%; border-collapse:collapse;">';
+                html += '<tr style="border-bottom:1px solid rgba(255,215,0,0.3);"><th style="padding:10px; text-align:left;">Username</th><th style="padding:10px; text-align:left;">User ID</th><th style="padding:10px; text-align:left;">Bergabung</th></tr>';
+                
+                for (const [id, user] of usersArray) {
+                    html += `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <td style="padding:10px;">${escapeHtml(user.username)}</td>
+                            <td style="padding:10px;"><code>${id.substring(0, 12)}...</code></td>
+                            <td style="padding:10px;">${new Date(user.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                }
+                html += '</table></div>';
+                container.innerHTML = html;
+            });
+        }
+
+        // ==================== INIT ====================
+        async function init() {
+            const hasAccess = await checkAdminAccess();
+            if (!hasAccess) return;
+            
+            initTabs();
+            loadOrders();
+            loadSchedule();
+            loadSliders();
+            loadUsers();
+            updateStats();
+        }
+
+        function initTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                    document.getElementById(`tab-${btn.getAttribute('data-tab')}`).classList.add('active');
+                });
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

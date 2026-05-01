@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bizzy Impact Official - Jasa Joki Genshin Impact</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10,10,26,0.85), rgba(0,0,0,0.88));
+            z-index: -1;
+        }
+        
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .bee-container {
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+        .bee-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #ffcc00;
+            border-radius: 50% 50% 40% 40%;
+            position: relative;
+            border: 3px solid #000;
+            overflow: hidden;
+        }
+        .bee-icon::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background: #000;
+            box-shadow: 0 25px 0 #000;
+        }
+        .eye {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+        }
+        .wing {
+            position: absolute;
+            top: -15px;
+            left: 10px;
+            width: 40px;
+            height: 30px;
+            background: rgba(200,200,200,0.6);
+            border: 2px solid #000;
+            border-radius: 50% 50% 0 50%;
+            transform-origin: bottom right;
+            animation: flap 0.15s ease-in-out infinite alternate;
+        }
+        .wing.right {
+            left: 35px;
+            border-radius: 50% 50% 50% 0%;
+            transform-origin: bottom left;
+        }
+        .text-container {
+            text-align: left;
+            color: #000;
+        }
+        .brand-main {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 0;
+            line-height: 1;
+            color: #000;
+        }
+        .brand-sub {
+            font-size: 52px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 0.8;
+            letter-spacing: -2px;
+            color: #000;
+        }
+        @keyframes float {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes flap {
+            from { transform: rotate(10deg) skewX(10deg); }
+            to { transform: rotate(-20deg) skewX(-10deg); }
+        }
+        .loading-text {
+            margin-top: 20px;
+            color: #ffd700;
+            font-size: 0.8rem;
+        }
+        
+        /* Web Close Overlay */
+        .web-closed-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            flex-direction: column;
+        }
+        .web-closed-overlay.active {
+            display: flex;
+        }
+        .web-closed-card {
+            background: rgba(15,15,35,0.9);
+            border-radius: 48px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.3);
+            max-width: 350px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px 100px;
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD966, #FF8C00, #FF5722);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .tagline {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+        
+        /* Video Card - Bisa Diganti URL via Admin */
+        .video-card {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,215,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .video-card::before {
+            content: "BIZZY IMPACT";
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.7), transparent);
+            padding: 5px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            z-index: 2;
+            color: #ffd700;
+        }
+        .video-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 25px;
+        }
+        .promo-video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+            pointer-events: none; /* Tidak bisa di-pause/di-klik */
+        }
+        
+        /* Slider */
+        .slider-container {
+            margin-bottom: 20px;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        .slide {
+            min-width: 100%;
+        }
+        .slide img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 24px;
+        }
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .slider-prev { left: 10px; }
+        .slider-next { right: 10px; }
+        .slider-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+        .dot.active { background: #ffd700; }
+        
+        /* Welcome Card */
+        .welcome-card {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .welcome-text {
+            font-size: 0.9rem;
+        }
+        .welcome-text i {
+            color: #ffd700;
+        }
+        .queue-badge {
+            background: #ff5722;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        /* Auth Card */
+        .auth-card {
+            background: rgba(15,15,35,0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 48px;
+            padding: 32px 28px;
+            border: 1px solid rgba(255,215,0,0.25);
+            text-align: center;
+        }
+        .auth-card h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(95deg, #FFD700, #FF8C00);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #0a0a1a;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .auth-switch {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .auth-switch span {
+            color: #ffd700;
+            cursor: pointer;
+        }
+        
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+        }
+        .category-btn {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .category-btn.active {
+            background: linear-gradient(95deg, #FFD700, #FF8C00);
+            color: #1a1a2e;
+        }
+        
+        .price-card {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,215,0,0.2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .price-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+        .price-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .price-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        .price-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .btn-order {
+            background: linear-gradient(95deg, #25D366, #128C7E);
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+        
+        .contact-card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .contact-card a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.6rem;
+            opacity: 0.5;
+            margin-top: 20px;
+        }
+        
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 8px 12px;
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            z-index: 100;
+        }
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 30px;
+            transition: 0.2s;
+            flex: 1;
+        }
+        .nav-item.active {
+            background: #ffd700;
+            color: #1a1a2e;
+        }
+        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+        .nav-item span { font-size: 0.65rem; }
+        
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+        .info-card h3 {
+            color: #ffd700;
+            margin-bottom: 12px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            z-index: 2000;
+            border-left: 4px solid #ffd700;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: rgba(10,10,26,0.98);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            transition: 0.3s;
+            padding: 20px;
+            border-right: 1px solid rgba(255,215,0,0.2);
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .sidebar-overlay.open { display: block; }
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            z-index: 98;
+            font-size: 1.2rem;
+        }
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        .sidebar-menu li {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .sidebar-menu li:hover {
+            background: rgba(255,215,0,0.2);
+        }
+        .visitor-count {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.7rem;
+            margin-bottom: 15px;
+        }
+        .live-clock {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .queue-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Animation -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="logo-box">
+            <div class="bee-container">
+                <div class="wing"></div>
+                <div class="wing right"></div>
+                <div class="bee-icon">
+                    <div class="eye"></div>
+                </div>
+            </div>
+            <div class="text-container">
+                <p class="brand-main">Bizzy</p>
+                <p class="brand-sub">Impact</p>
+            </div>
+        </div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Web Closed Overlay -->
+    <div class="web-closed-overlay" id="webClosedOverlay">
+        <div class="web-closed-card">
+            <i class="fas fa-clock" style="font-size: 3rem; color: #ffd700;"></i>
+            <h2 style="margin: 20px 0;">Web Sedang Tutup</h2>
+            <p id="closedMessage">Web akan buka kembali pukul 08:00 WIB</p>
+            <p style="margin-top: 15px; font-size: 0.7rem;">Bizzy Impact Official</p>
+        </div>
+    </div>
+
+    <div class="overlay"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3><i class="fas fa-crown"></i> Bizzy Impact</h3>
+            <i class="fas fa-times" onclick="closeSidebar()" style="cursor:pointer; font-size: 1.2rem;"></i>
+        </div>
+        
+        <div class="visitor-count" id="visitorCount">
+            <i class="fas fa-eye"></i> Total Pengunjung: <span id="visitorNumber">0</span>
+        </div>
+        <div class="live-clock" id="liveClock"></div>
+        
+        <div class="queue-info">
+            <i class="fas fa-hourglass-half"></i> Total Antrian: <span id="queueTotal">0</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li onclick="openMyOrders()"><i class="fas fa-box"></i> Pesanan Saya</li>
+            <li onclick="openCustomerService()"><i class="fas fa-headset"></i> Customer Service</li>
+            <li onclick="openAdmin()"><i class="fas fa-user-shield"></i> Admin Panel</li>
+            <li onclick="showPrivacy()"><i class="fas fa-shield-alt"></i> Kebijakan Privasi</li>
+            <li onclick="showReadme()"><i class="fas fa-info-circle"></i> README</li>
+            <li onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
+        </ul>
+        
+        <div style="margin-top: 20px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 16px;">
+            <p style="font-size: 0.7rem; text-align: center;">© 2026 Bizzy Impact Official</p>
+        </div>
+    </div>
+    
+    <div class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-crown"></i> BIZZY IMPACT
+            </div>
+            <div class="tagline">OFFICIAL JASA JOKI GENSHIN IMPACT</div>
+        </div>
+        
+        <!-- Video Card (Bisa diganti URL via Admin) -->
+        <div class="video-card">
+            <div class="video-wrapper">
+                <video id="promoVideo" class="promo-video" autoplay loop muted playsinline>
+                    <source src="https://o.uguu.se/PbMriltY.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+        
+        <!-- Slider -->
+        <div class="slider-container" id="sliderContainer">
+            <button class="slider-btn slider-prev" onclick="prevSlide()">❮</button>
+            <div class="slider" id="slider">
+                <div class="slide"><img src="https://via.placeholder.com/500x150?text=Bizzy+Impact+1" alt="Slide 1"></div>
+            </div>
+            <button class="slider-btn slider-next" onclick="nextSlide()">❯</button>
+            <div class="slider-dots" id="sliderDots"></div>
+        </div>
+        
+        <!-- Auth Section -->
+        <div id="authSection">
+            <div class="auth-card">
+                <h2><i class="fas fa-user-circle"></i> Selamat Datang</h2>
+                <input type="text" id="loginUsername" class="auth-input" placeholder="Username">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+                <button class="auth-btn" onclick="handleLogin()">MASUK</button>
+                <div class="auth-switch">
+                    Belum punya akun? <span onclick="showRegister()">Daftar Sekarang</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Register Section -->
+        <div id="registerSection" style="display: none;">
+            <div class="auth-card">
+                <h2><i class="fas fa-user-plus"></i> Daftar Akun</h2>
+                <input type="text" id="regUsername" class="auth-input" placeholder="Username">
+                <input type="password" id="regPassword" class="auth-input" placeholder="Password">
+                <button class="auth-btn" onclick="handleRegister()">DAFTAR</button>
+                <div class="auth-switch">
+                    Sudah punya akun? <span onclick="showLogin()">Masuk</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main App -->
+        <div id="mainApp" style="display: none;">
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <div class="welcome-text">
+                    <i class="fas fa-user"></i> Welcome, <strong id="welcomeUsername">-</strong>
+                </div>
+                <div class="queue-badge" id="myQueueBadge">
+                    <i class="fas fa-hourglass-half"></i> Antrian: -
+                </div>
+            </div>
+            
+            <!-- Category Tabs -->
+            <div class="category-tabs">
+                <div class="category-btn active" data-cat="explore">🗺️ EXPLORE</div>
+                <div class="category-btn" data-cat="character">⚔️ CHARACTER</div>
+                <div class="category-btn" data-cat="info">ℹ️ INFO</div>
+            </div>
+            
+            <!-- Page EXPLORE -->
+            <div id="page-explore" class="page active">
+                <div class="price-card" data-name="MONDSTADT" data-price="150000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-map-marker-alt"></i> MONDSTADT</span>
+                        <span class="price-value">Rp 150.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="DRAGONSPINE" data-price="70000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-mountain"></i> DRAGONSPINE</span>
+                        <span class="price-value">Rp 70.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LIYUE + CHASM + CHENYU" data-price="450000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-city"></i> LIYUE + CHASM + CHENYU</span>
+                        <span class="price-value">Rp 450.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="INAZUMA + ENKANOMIYA" data-price="450000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-torii-gate"></i> INAZUMA + ENKANOMIYA</span>
+                        <span class="price-value">Rp 450.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="SUMERU FOREST & DESERT" data-price="600000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-tree"></i> SUMERU FOREST & DESERT</span>
+                        <span class="price-value">Rp 600.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="FONTAINE + SEA BYGONE" data-price="550000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-water"></i> FONTAINE + SEA BYGONE</span>
+                        <span class="price-value">Rp 550.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="NATLAN + ANCIENT SACRED MOUNTAIN" data-price="550000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-fire"></i> NATLAN + ANCIENT SACRED MOUNTAIN</span>
+                        <span class="price-value">Rp 550.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="PROGRESS 1-90%" data-price="0">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-percent"></i> PROGRESS 1-90%</span>
+                        <span class="price-value">1% = Rp 1.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="PROGRESS 91-100%" data-price="0">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-percent"></i> PROGRESS 91-100%</span>
+                        <span class="price-value">1% = Rp 2.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Page CHARACTER -->
+            <div id="page-character" class="page">
+                <div class="price-card" data-name="LEVEL 1→20" data-price="7000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 1 → 20</span>
+                        <span class="price-value">Rp 7.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 20→40" data-price="7000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 20 → 40</span>
+                        <span class="price-value">Rp 7.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 40→50" data-price="7000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 40 → 50</span>
+                        <span class="price-value">Rp 7.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 50→60" data-price="12000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 50 → 60</span>
+                        <span class="price-value">Rp 12.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 60→70" data-price="12000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 60 → 70</span>
+                        <span class="price-value">Rp 12.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 70→80" data-price="18000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 70 → 80</span>
+                        <span class="price-value">Rp 18.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="LEVEL 80→90" data-price="25000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-star"></i> LEVEL 80 → 90</span>
+                        <span class="price-value">Rp 25.000</span>
+                    </div>
+                </div>
+                <div class="price-card" data-name="PAKET ASCEND 1→90" data-price="80000">
+                    <div class="price-header">
+                        <span class="price-title"><i class="fas fa-crown"></i> PAKET ASCEND 1 → 90</span>
+                        <span class="price-value">Rp 80.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Page INFO -->
+            <div id="page-info" class="page">
+                <div class="info-card">
+                    <h3><i class="fas fa-info-circle"></i> Tentang Kami</h3>
+                    <p>Bizzy Impact Official adalah penyedia jasa joki Genshin Impact terpercaya. Kami melayani explore region, leveling character, dan berbagai kebutuhan Genshin Impact Anda.</p>
+                </div>
+                <div class="info-card" style="margin-top: 15px;">
+                    <h3><i class="fas fa-check-circle"></i> Keunggulan Kami</h3>
+                    <p>✅ Proses Cepat & Aman<br>✅ Harga Terjangkau<br>✅ Bisa Request Custom<br>✅ Support 24 Jam</p>
+                </div>
+            </div>
+            
+            <button class="btn-order" id="orderBtn">
+                <i class="fas fa-shopping-cart"></i> PESAN SEKARANG
+            </button>
+            
+            <div class="contact-card">
+                <p><i class="fab fa-whatsapp"></i> Admin 1: <a href="https://wa.me/6281772352832" target="_blank">+62 817-7235-2832</a></p>
+                <p><i class="fab fa-whatsapp"></i> Admin 2: <a href="https://wa.me/6285794545996" target="_blank">+62 857-9454-5996</a></p>
+                <p><i class="fab fa-telegram"></i> @bizzyimpactjoki</p>
+            </div>
+            
+            <div class="footer">
+                <p>© 2026 Bizzy Impact Official | All Rights Reserved</p>
+                <p>Harga dapat berubah sewaktu-waktu</p>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav" id="bottomNav" style="display: none;">
+            <div class="nav-item active" id="nav-explore"><i class="fas fa-map"></i><span>EXPLORE</span></div>
+            <div class="nav-item" id="nav-character"><i class="fas fa-user-friends"></i><span>CHARACTER</span></div>
+            <div class="nav-item" id="nav-info"><i class="fas fa-info-circle"></i><span>INFO</span></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUHSGJ2Yaet7ue1x8WLcHn6LI627SINqg",
+            authDomain: "rayy-digital-store.firebaseapp.com",
+            databaseURL: "https://rayy-digital-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rayy-digital-store",
+            storageBucket: "rayy-digital-store.firebasestorage.app",
+            messagingSenderId: "537690791174",
+            appId: "1:537690791174:web:c29f7cdfcae0506b6e1287"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, get, set, update, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Variables
+        let currentUserId = null;
+        let currentUsername = null;
+        let selectedProduct = null;
+        let selectedPrice = 0;
+        let slides = [];
+        let currentSlide = 0;
+        let slideInterval;
+        
+        // Load Video URL dari database
+        function loadVideoUrl() {
+            const videoRef = ref(db, 'bizzy_settings/video_url');
+            onValue(videoRef, (snapshot) => {
+                const videoUrl = snapshot.val();
+                if (videoUrl) {
+                    const videoElement = document.getElementById('promoVideo');
+                    const sourceElement = videoElement.querySelector('source');
+                    sourceElement.src = videoUrl;
+                    videoElement.load();
+                }
+            });
+        }
+        
+        // Loading screen
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                checkWebStatus();
+            }, 500);
+        }, 2000);
+        
+        // Web Status Check (Open/Close)
+        async function checkWebStatus() {
+            const statusRef = ref(db, 'bizzy_settings/web_status');
+            const snapshot = await get(statusRef);
+            const status = snapshot.val();
+            if (status && status.closed) {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const closeHour = status.closeHour || 0;
+                const closeMinute = status.closeMinute || 0;
+                const openHour = status.openHour || 8;
+                const openMinute = status.openMinute || 0;
+                
+                const isClosed = (currentHour > closeHour || (currentHour === closeHour && currentMinute >= closeMinute)) &&
+                                 (currentHour < openHour || (currentHour === openHour && currentMinute < openMinute));
+                
+                if (isClosed || status.manualClosed) {
+                    document.getElementById('webClosedOverlay').classList.add('active');
+                    document.getElementById('closedMessage').innerHTML = status.message || `Web akan buka kembali pukul ${openHour.toString().padStart(2,'0')}:${openMinute.toString().padStart(2,'0')} WIB`;
+                    return false;
+                }
+            }
+            document.getElementById('webClosedOverlay').classList.remove('active');
+            return true;
+        }
+        
+        // Live Clock
+        function updateClock() {
+            const now = new Date();
+            const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const tanggal = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('liveClock').innerHTML = `<i class="fas fa-clock"></i> ${tanggal} | ${waktu}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // Visitor Counter
+        async function updateVisitorCount() {
+            const visitorRef = ref(db, 'bizzy_visitors');
+            const snapshot = await get(visitorRef);
+            let count = snapshot.val() || 0;
+            count++;
+            await set(visitorRef, count);
+            document.getElementById('visitorNumber').innerText = count;
+        }
+        updateVisitorCount();
+        
+        // Load Sliders
+        function loadSliders() {
+            const slidesRef = ref(db, 'bizzy_settings/slides');
+            onValue(slidesRef, (snapshot) => {
+                const data = snapshot.val();
+                slides = data ? Object.values(data) : [];
+                renderSlider();
+                if (slides.length > 1) startAutoSlide();
+            });
+        }
+        
+        function renderSlider() {
+            const slider = document.getElementById('slider');
+            const dots = document.getElementById('sliderDots');
+            if (!slider) return;
+            if (slides.length === 0) {
+                slider.innerHTML = `<div class="slide"><img src="https://via.placeholder.com/500x150?text=Bizzy+Impact" alt="Slide"></div>`;
+                dots.innerHTML = '';
+                return;
+            }
+            slider.innerHTML = slides.map(slide => `<div class="slide"><img src="${slide.imageUrl}" alt="Slide" onerror="this.src='https://via.placeholder.com/500x150?text=Error'"></div>`).join('');
+            dots.innerHTML = slides.map((_, i) => `<div class="dot ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})"></div>`).join('');
+        }
+        
+        function startAutoSlide() {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(() => nextSlide(), 5000);
+        }
+        function nextSlide() {
+            if (slides.length === 0) return;
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlidePosition();
+        }
+        function prevSlide() {
+            if (slides.length === 0) return;
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlidePosition();
+        }
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlidePosition();
+        }
+        function updateSlidePosition() {
+            const slider = document.getElementById('slider');
+            if (slider) slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+        }
+        
+        window.prevSlide = prevSlide;
+        window.nextSlide = nextSlide;
+        window.goToSlide = goToSlide;
+        
+        // Load Total Queue
+        function loadTotalQueue() {
+            const ordersRef = ref(db, 'bizzy_orders');
+            onValue(ordersRef, (snapshot) => {
+                const orders = snapshot.val();
+                if (orders) {
+                    const pendingOrders = Object.values(orders).filter(o => o.status === 'pending' || o.status === 'processing');
+                    document.getElementById('queueTotal').innerText = pendingOrders.length;
+                } else {
+                    document.getElementById('queueTotal').innerText = '0';
+                }
+            });
+        }
+        
+        // Load My Queue Status
+        async function loadMyQueue() {
+            if (!currentUserId) return;
+            const ordersRef = ref(db, 'bizzy_orders');
+            const snapshot = await get(ordersRef);
+            const orders = snapshot.val();
+            if (orders) {
+                const myOrders = Object.entries(orders).filter(([id, order]) => order.userId === currentUserId);
+                const pendingOrder = myOrders.find(([id, order]) => order.status === 'pending' || order.status === 'processing');
+                if (pendingOrder) {
+                    const status = pendingOrder[1].status;
+                    const queueNumber = pendingOrder[1].queueNumber || '?';
+                    if (status === 'pending') {
+                        document.getElementById('myQueueBadge').innerHTML = `<i class="fas fa-hourglass-half"></i> Antrian: ${queueNumber}`;
+                    } else if (status === 'processing') {
+                        document.getElementById('myQueueBadge').innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Sedang Diproses`;
+                    }
+                } else {
+                    document.getElementById('myQueueBadge').innerHTML = `<i class="fas fa-check"></i> Tidak Ada Antrian`;
+                }
+            }
+        }
+        
+        // Hash password
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        // Auth Functions
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            
+            if (!username || username.length < 3) {
+                showToast("Username minimal 3 karakter!");
+                return;
+            }
+            if (!password || password.length < 4) {
+                showToast("Password minimal 4 karakter!");
+                return;
+            }
+            
+            const usersRef = ref(db, 'bizzy_users');
+            const snapshot = await get(usersRef);
+            let exists = false;
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                for (let key in users) {
+                    if (users[key].username === username) {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+            if (exists) {
+                showToast("Username sudah digunakan!");
+                return;
+            }
+            
+            const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            const hashedPassword = await hashPassword(password);
+            
+            const userData = {
+                username: username,
+                passwordHash: hashedPassword,
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            
+            await set(ref(db, `bizzy_users/${userId}`), userData);
+            localStorage.setItem('bizzy_userId', userId);
+            localStorage.setItem('bizzy_username', username);
+            
+            showToast("✅ Pendaftaran berhasil!");
+            showLogin();
+        }
+        
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showToast("Isi username dan password!");
+                return;
+            }
+            
+            const usersRef = ref(db, 'bizzy_users');
+            const snapshot = await get(usersRef);
+            
+            if (!snapshot.exists()) {
+                showToast("Username tidak ditemukan!");
+                return;
+            }
+            
+            const hashedInput = await hashPassword(password);
+            let userId = null;
+            let userData = null;
+            const users = snapshot.val();
+            
+            for (let key in users) {
+                if (users[key].username === username && users[key].passwordHash === hashedInput) {
+                    userId = key;
+                    userData = users[key];
+                    break;
+                }
+            }
+            
+            if (!userId) {
+                showToast("Password salah!");
+                return;
+            }
+            
+            await update(ref(db, `bizzy_users/${userId}`), { lastLogin: new Date().toISOString() });
+            
+            localStorage.setItem('bizzy_userId', userId);
+            localStorage.setItem('bizzy_username', username);
+            currentUserId = userId;
+            currentUsername = username;
+            
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('bottomNav').style.display = 'flex';
+            document.getElementById('welcomeUsername').innerText = username;
+            
+            loadMyQueue();
+            showToast("✅ Login berhasil!");
+        }
+        
+        async function handleLogout() {
+            localStorage.removeItem('bizzy_userId');
+            localStorage.removeItem('bizzy_username');
+            currentUserId = null;
+            currentUsername = null;
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('bottomNav').style.display = 'none';
+            showToast("✅ Logout berhasil!");
+        }
+        
+        function showRegister() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('registerSection').style.display = 'block';
+        }
+        
+        function showLogin() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('registerSection').style.display = 'none';
+        }
+        
+        function showToast(msg) {
+            let toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+        
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+        
+        function openMyOrders() {
+            window.location.href = 'my-orders.html';
+        }
+        
+        function openCustomerService() {
+            window.location.href = 'cs.html';
+        }
+        
+        function openAdmin() {
+            window.location.href = 'admin.html';
+        }
+        
+        function showPrivacy() {
+            alert("🔒 KEBIJAKAN PRIVASI\n\nWeb Bizzy Impact Official aman dan terpercaya. Data Anda tidak akan disalahgunakan.\n\n✅ Data tidak dibagikan ke pihak ketiga\n✅ Transaksi aman dengan QRIS\n✅ Support 24 jam");
+        }
+        
+        function showReadme() {
+            alert("📢 README / INFO\n\nBizzy Impact Official - Jasa Joki Genshin Impact\n\n✅ Explore Region 100%\n✅ Leveling Character 1-90\n✅ Proses Cepat & Aman\n✅ Harga Terjangkau\n\nCara Order:\n1. Pilih paket\n2. Isi data login game\n3. Upload bukti transfer\n\nTerima kasih! 🙏");
+        }
+        
+        // Category navigation
+        function initCategoryNav() {
+            const btns = document.querySelectorAll('.category-btn');
+            const pages = {
+                explore: document.getElementById('page-explore'),
+                character: document.getElementById('page-character'),
+                info: document.getElementById('page-info')
+            };
+            const navItems = {
+                explore: document.getElementById('nav-explore'),
+                character: document.getElementById('nav-character'),
+                info: document.getElementById('nav-info')
+            };
+            
+            function switchCategory(category) {
+                Object.values(pages).forEach(p => p.classList.remove('active'));
+                Object.values(navItems).forEach(n => n.classList.remove('active'));
+                btns.forEach(b => b.classList.remove('active'));
+                
+                if (category === 'explore') {
+                    pages.explore.classList.add('active');
+                    btns[0].classList.add('active');
+                    navItems.explore.classList.add('active');
+                } else if (category === 'character') {
+                    pages.character.classList.add('active');
+                    btns[1].classList.add('active');
+                    navItems.character.classList.add('active');
+                } else if (category === 'info') {
+                    pages.info.classList.add('active');
+                    btns[2].classList.add('active');
+                    navItems.info.classList.add('active');
+                }
+            }
+            
+            btns.forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    const cat = btn.getAttribute('data-cat');
+                    switchCategory(cat);
+                });
+            });
+            
+            if (navItems.explore) {
+                navItems.explore.addEventListener('click', () => switchCategory('explore'));
+                navItems.character.addEventListener('click', () => switchCategory('character'));
+                navItems.info.addEventListener('click', () => switchCategory('info'));
+            }
+        }
+        
+        // Price card click
+        function initPriceCards() {
+            document.querySelectorAll('.price-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const name = card.getAttribute('data-name');
+                    const price = parseInt(card.getAttribute('data-price'));
+                    if (name && price) {
+                        selectedProduct = name;
+                        selectedPrice = price;
+                        showToast(`✅ ${name} - Rp ${price.toLocaleString()} dipilih`);
+                    } else if (name && name.includes('PROGRESS')) {
+                        let percent = prompt('Masukkan persentase progress yang ingin dinaikkan (1-100):', '10');
+                        percent = parseInt(percent);
+                        if (percent && percent > 0 && percent <= 100) {
+                            if (percent <= 90) {
+                                selectedPrice = percent * 1000;
+                            } else {
+                                selectedPrice = (90 * 1000) + ((percent - 90) * 2000);
+                            }
+                            selectedProduct = `${name} (${percent}%)`;
+                            showToast(`✅ ${selectedProduct} - Rp ${selectedPrice.toLocaleString()} dipilih`);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Order button
+        document.getElementById('orderBtn')?.addEventListener('click', async () => {
+            if (!selectedProduct || !selectedPrice) {
+                showToast("Pilih paket terlebih dahulu!");
+                return;
+            }
+            if (!currentUserId) {
+                showToast("Silakan login terlebih dahulu!");
+                return;
+            }
+            
+            // Check if user already has pending order
+            const ordersRef = ref(db, 'bizzy_orders');
+            const snapshot = await get(ordersRef);
+            const orders = snapshot.val();
+            if (orders) {
+                const myPending = Object.values(orders).some(o => o.userId === currentUserId && (o.status === 'pending' || o.status === 'processing'));
+                if (myPending) {
+                    showToast("⚠️ Anda masih memiliki pesanan aktif! Selesaikan dulu.");
+                    return;
+                }
+            }
+            
+            localStorage.setItem('bizzy_order_product', selectedProduct);
+            localStorage.setItem('bizzy_order_price', selectedPrice);
+            localStorage.setItem('bizzy_order_user', currentUsername);
+            localStorage.setItem('bizzy_order_userId', currentUserId);
+            window.location.href = 'order.html';
+        });
+        
+        // Check session
+        async function checkSession() {
+            const userId = localStorage.getItem('bizzy_userId');
+            const username = localStorage.getItem('bizzy_username');
+            if (userId && username) {
+                const userRef = ref(db, `bizzy_users/${userId}`);
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    currentUserId = userId;
+                    currentUsername = username;
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('registerSection').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                    document.getElementById('bottomNav').style.display = 'flex';
+                    document.getElementById('welcomeUsername').innerText = username;
+                    initCategoryNav();
+                    initPriceCards();
+                    loadMyQueue();
+                    return;
+                }
+            }
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('bottomNav').style.display = 'none';
+            initCategoryNav();
+            initPriceCards();
+        }
+        
+        window.handleRegister = handleRegister;
+        window.handleLogin = handleLogin;
+        window.handleLogout = handleLogout;
+        window.showRegister = showRegister;
+        window.showLogin = showLogin;
+        window.toggleSidebar = toggleSidebar;
+        window.closeSidebar = closeSidebar;
+        window.openMyOrders = openMyOrders;
+        window.openCustomerService = openCustomerService;
+        window.openAdmin = openAdmin;
+        window.showPrivacy = showPrivacy;
+        window.showReadme = showReadme;
+        
+        loadVideoUrl();
+        loadSliders();
+        loadTotalQueue();
+        checkSession();
+    </script>
+</body>
+</html>
