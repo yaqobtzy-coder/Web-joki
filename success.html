@@ -130,6 +130,17 @@
             cursor: pointer;
             margin-top: 10px;
         }
+        .btn-telegram {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(95deg, #0088cc, #005f8c);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
         .countdown {
             font-size: 0.8rem;
             color: var(--primary-color);
@@ -142,6 +153,25 @@
             border-radius: 12px;
             margin-top: 16px;
             font-size: 0.75rem;
+        }
+        .bot-cmd-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .bot-cmd {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .bot-cmd:hover {
+            background: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
@@ -181,11 +211,24 @@
             <button class="btn-primary" id="confirmBtn">
                 <i class="fab fa-whatsapp"></i> KONFIRMASI KE ADMIN
             </button>
+            <button class="btn-telegram" id="botBtn">
+                <i class="fab fa-telegram"></i> CEK STATUS DI BOT
+            </button>
             <button class="btn-secondary" onclick="goToHome()">
                 <i class="fas fa-home"></i> Kembali ke Beranda
             </button>
 
             <div class="countdown" id="countdownArea"></div>
+
+            <div class="warning-box">
+                <p><i class="fab fa-telegram"></i> <strong>Cek status pesanan via Bot Telegram:</strong></p>
+                <div class="bot-cmd-list">
+                    <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
+                    <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
+                    <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+                </div>
+                <p style="font-size: 0.7rem; margin-top: 10px;">@BizzyImpactBot</p>
+            </div>
         </div>
     </div>
 
@@ -233,6 +276,20 @@
         let lastOrder = null;
         let adminNumber = '6281772352832';
 
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            showToastCustom(`✅ Command ${command} disalin!`);
+        }
+
+        function showToastCustom(msg) {
+            let toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerHTML = msg;
+            toast.style.cssText = "position:fixed;bottom:20px;left:20px;right:20px;background:white;padding:12px;border-radius:40px;text-align:center;z-index:2000;border-left:4px solid #1e88e5;color:#1a2a6c;";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         function loadData() {
             const orderData = localStorage.getItem('bizzy_last_order');
             if (orderData) {
@@ -265,6 +322,10 @@ Mohon segera diproses. Terima kasih.`;
             window.open(`https://wa.me/${adminNumber}?text=${encodedMessage}`, '_blank');
         });
 
+        document.getElementById('botBtn').addEventListener('click', () => {
+            window.open('https://t.me/BizzyImpactBot', '_blank');
+        });
+
         function goToHome() {
             localStorage.removeItem('bizzy_last_order');
             localStorage.removeItem('bizzy_order_product');
@@ -287,6 +348,7 @@ Mohon segera diproses. Terima kasih.`;
         await loadCustomTheme();
         loadData();
         window.goToHome = goToHome;
+        window.copyCommand = copyCommand;
     </script>
 </body>
 </html>

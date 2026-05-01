@@ -60,6 +60,42 @@
             color: transparent;
         }
         
+        /* Bot Status Bar */
+        .bot-status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 5px #28a745; }
+        .status-dot.offline { background: #dc3545; }
+        .bot-command-badge {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .bot-command-badge:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
         .user-list {
             background: var(--bg-card);
             border-radius: 24px;
@@ -224,6 +260,31 @@
             background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
             color: white;
         }
+        .typing-indicator {
+            font-size: 0.7rem;
+            opacity: 0.5;
+            padding: 5px 16px;
+            font-style: italic;
+        }
+        .bot-cmd-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .bot-cmd {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .bot-cmd:hover {
+            background: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -233,6 +294,17 @@
         <div class="header">
             <h1><i class="fas fa-headset"></i> Admin Customer Service</h1>
             <p>Balas chat user</p>
+        </div>
+
+        <!-- Bot Status Bar -->
+        <div class="bot-status-bar">
+            <div class="bot-status">
+                <span class="status-dot online" id="botStatusDot"></span>
+                <span id="botStatusText"><i class="fab fa-telegram"></i> Bizzy Impact Bot</span>
+            </div>
+            <div class="bot-command-badge" onclick="openBot()">
+                <i class="fab fa-telegram"></i> @BizzyImpactBot
+            </div>
         </div>
 
         <div class="admin-selector">
@@ -251,14 +323,28 @@
             <div class="chat-messages" id="chatMessages">
                 <div style="text-align:center; padding:20px;">Pilih user untuk memulai chat</div>
             </div>
+            <div class="typing-indicator" id="typingIndicator"></div>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="Ketik pesan balasan...">
                 <button onclick="sendAdminMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
+        <!-- Info Bot Commands -->
+        <div style="background: rgba(0,0,0,0.03); border-radius: 20px; padding: 16px; margin-top: 15px; text-align: center;">
+            <p><i class="fab fa-telegram"></i> <strong>Command Bot untuk Admin</strong></p>
+            <div class="bot-cmd-list">
+                <div class="bot-cmd" onclick="copyCommand('/ambil_data')">/ambil_data</div>
+                <div class="bot-cmd" onclick="copyCommand('/proses')">/proses</div>
+                <div class="bot-cmd" onclick="copyCommand('/done')">/done</div>
+                <div class="bot-cmd" onclick="copyCommand('/antrian')">/antrian</div>
+                <div class="bot-cmd" onclick="copyCommand('/broadcast')">/broadcast</div>
+                <div class="bot-cmd" onclick="copyCommand('/laporan_owner')">/laporan_owner</div>
+            </div>
+        </div>
+
         <button class="btn-secondary" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i> Kembali
+            <i class="fas fa-arrow-left"></i> Kembali ke Admin Panel
         </button>
     </div>
 
@@ -303,11 +389,28 @@
             }
         }
 
+        async function loadBotStatus() {
+            const botConfigRef = ref(db, 'bizzy_settings/bot_config');
+            const snapshot = await get(botConfigRef);
+            const config = snapshot.val();
+            const dot = document.getElementById('botStatusDot');
+            const text = document.getElementById('botStatusText');
+            
+            if (config && config.online) {
+                dot.className = 'status-dot online';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Online';
+            } else {
+                dot.className = 'status-dot offline';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Offline';
+            }
+        }
+
         let currentAdmin = "admin1";
         let currentAdminName = "Admin 1";
         let selectedUserId = null;
         let selectedUsername = null;
         let chatRef = null;
+        let typingTimeout = null;
 
         function showToast(msg) {
             let toast = document.createElement("div");
@@ -315,6 +418,15 @@
             toast.innerHTML = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
+        }
+
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            showToast(`✅ Command ${command} disalin! Gunakan di @BizzyImpactBot`);
+        }
+
+        function openBot() {
+            window.open('https://t.me/BizzyImpactBot', '_blank');
         }
 
         document.querySelectorAll('.admin-btn').forEach(btn => {
@@ -403,7 +515,22 @@
             });
             
             loadChatMessages();
+            listenTyping();
         };
+
+        function listenTyping() {
+            if (!selectedUserId) return;
+            const chatRoomId = `chat_${selectedUserId}_${currentAdmin}`;
+            onValue(ref(db, `bizzy_chats/${chatRoomId}/typing`), (snapshot) => {
+                const typing = snapshot.val();
+                const indicator = document.getElementById('typingIndicator');
+                if (typing && typing.isTyping) {
+                    indicator.innerHTML = `${escapeHtml(typing.username)} sedang mengetik...`;
+                } else {
+                    indicator.innerHTML = '';
+                }
+            });
+        }
 
         function loadChatMessages() {
             if (!selectedUserId) return;
@@ -463,7 +590,33 @@
             });
             
             input.value = '';
+            
+            // Kirim notifikasi ke bot
+            fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: '7966336512',
+                    text: `💬 *BALASAN ADMIN DI CS WEB*\n\n👤 User: ${selectedUsername}\n📨 Pesan: ${text}\n👨‍💼 Admin: ${currentAdminName}\n\nUser akan mendapat notifikasi.`,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(e => console.log);
         };
+
+        // Typing indicator
+        document.getElementById('chatInput')?.addEventListener('input', () => {
+            if (!selectedUserId) return;
+            const chatRoomId = `chat_${selectedUserId}_${currentAdmin}`;
+            set(ref(db, `bizzy_chats/${chatRoomId}/typing`), {
+                isTyping: true,
+                username: currentAdminName,
+                timestamp: Date.now()
+            });
+            if (typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                set(ref(db, `bizzy_chats/${chatRoomId}/typing`), null);
+            }, 2000);
+        });
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -479,9 +632,14 @@
         }, 5000);
 
         await loadCustomTheme();
+        await loadBotStatus();
         loadUserList();
+        
         window.goBack = goBack;
         window.sendAdminMessage = sendAdminMessage;
+        window.selectUser = selectUser;
+        window.copyCommand = copyCommand;
+        window.openBot = openBot;
     </script>
 </body>
 </html>

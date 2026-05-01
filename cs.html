@@ -60,6 +60,42 @@
             color: transparent;
         }
         
+        /* Bot Status Bar */
+        .bot-status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 5px #28a745; }
+        .status-dot.offline { background: #dc3545; }
+        .bot-command-badge {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .bot-command-badge:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
         .admin-selector {
             display: flex;
             gap: 15px;
@@ -215,6 +251,26 @@
             padding: 5px 16px;
             font-style: italic;
         }
+        .bot-command-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        .bot-cmd {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .bot-cmd:hover {
+            background: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -224,6 +280,17 @@
         <div class="header">
             <h1><i class="fas fa-headset"></i> Customer Service</h1>
             <p>Live Chat dengan Admin</p>
+        </div>
+
+        <!-- Bot Status Bar -->
+        <div class="bot-status-bar">
+            <div class="bot-status">
+                <span class="status-dot online" id="botStatusDot"></span>
+                <span id="botStatusText"><i class="fab fa-telegram"></i> Bizzy Impact Bot</span>
+            </div>
+            <div class="bot-command-badge" onclick="openBot()">
+                <i class="fab fa-telegram"></i> @BizzyImpactBot
+            </div>
         </div>
 
         <div class="admin-selector">
@@ -258,6 +325,17 @@
         <button class="btn-wa" id="whatsappBtn">
             <i class="fab fa-whatsapp"></i> Hubungi via WhatsApp
         </button>
+
+        <!-- Info Bot Commands -->
+        <div style="background: rgba(0,0,0,0.03); border-radius: 20px; padding: 16px; margin-top: 15px; text-align: center;">
+            <p><i class="fab fa-telegram"></i> <strong>Cek Status via Bot Telegram</strong></p>
+            <div class="bot-command-list">
+                <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
+                <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
+                <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+            </div>
+        </div>
+
         <button class="btn-secondary" onclick="goBack()">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
@@ -275,7 +353,7 @@
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+        import { getDatabase, ref, get, push, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -304,6 +382,22 @@
             }
         }
 
+        async function loadBotStatus() {
+            const botConfigRef = ref(db, 'bizzy_settings/bot_config');
+            const snapshot = await get(botConfigRef);
+            const config = snapshot.val();
+            const dot = document.getElementById('botStatusDot');
+            const text = document.getElementById('botStatusText');
+            
+            if (config && config.online) {
+                dot.className = 'status-dot online';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Online';
+            } else {
+                dot.className = 'status-dot offline';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Offline';
+            }
+        }
+
         let currentUserId = localStorage.getItem("bizzy_userId");
         let currentUsername = localStorage.getItem("bizzy_username");
         let selectedAdmin = "admin1";
@@ -317,6 +411,15 @@
             toast.innerHTML = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
+        }
+
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            showToast(`✅ Command ${command} disalin! Gunakan di @BizzyImpactBot`);
+        }
+
+        function openBot() {
+            window.open('https://t.me/BizzyImpactBot', '_blank');
         }
 
         document.querySelectorAll('.admin-card').forEach(card => {
@@ -395,12 +498,13 @@
             
             input.value = '';
             
+            // Notifikasi ke bot
             fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: '7966336512',
-                    text: `💬 *PESAN BARU DI CS*\n\n👤 User: ${currentUsername}\n📨 Pesan: ${text}\n👨‍💼 Admin: ${selectedAdmin === 'admin1' ? 'Admin 1' : 'Admin 2'}`,
+                    text: `💬 *PESAN BARU DI CS WEB*\n\n👤 User: ${currentUsername}\n📨 Pesan: ${text.substring(0, 100)}\n👨‍💼 Admin: ${selectedAdmin === 'admin1' ? 'Admin 1' : 'Admin 2'}\n\n💡 Gunakan /cs di bot untuk membalas.`,
                     parse_mode: 'Markdown'
                 })
             }).catch(e => console.log);
@@ -450,6 +554,7 @@
         }
 
         await loadCustomTheme();
+        await loadBotStatus();
 
         if (!currentUserId || !currentUsername) {
             document.getElementById('chatMessages').innerHTML = `
@@ -466,6 +571,8 @@
 
         window.goBack = goBack;
         window.sendMessage = sendMessage;
+        window.copyCommand = copyCommand;
+        window.openBot = openBot;
     </script>
 </body>
 </html>

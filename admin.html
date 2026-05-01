@@ -333,6 +333,49 @@
             display: inline-block;
             margin: 5px;
         }
+
+        /* Bot Integration */
+        .bot-status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 5px #28a745; }
+        .status-dot.offline { background: #dc3545; }
+        .bot-command-badge {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .bot-command-badge:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        .broadcast-preview {
+            background: rgba(0,0,0,0.03);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -340,6 +383,17 @@
         <div class="header">
             <h1><i class="fas fa-user-shield"></i> Bizzy Impact - Admin Panel</h1>
             <p>Manajemen Pesanan, Slider, Video, Jam Operasional & Custom Tema</p>
+        </div>
+
+        <!-- Bot Status Bar -->
+        <div class="bot-status-bar">
+            <div class="bot-status">
+                <span class="status-dot online" id="botStatusDot"></span>
+                <span id="botStatusText"><i class="fab fa-telegram"></i> Bizzy Impact Bot</span>
+            </div>
+            <div class="bot-command-badge" onclick="openBot()">
+                <i class="fab fa-telegram"></i> @BizzyImpactBot
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -357,6 +411,7 @@
             <div class="tab-btn" data-tab="video">🎬 Video Background</div>
             <div class="tab-btn" data-tab="sliders">🖼️ Slider</div>
             <div class="tab-btn" data-tab="users">👥 User</div>
+            <div class="tab-btn" data-tab="bot">🤖 Bot Config</div>
         </div>
 
         <!-- TAB ORDERS -->
@@ -485,6 +540,61 @@
                 <div id="usersList"></div>
             </div>
         </div>
+
+        <!-- TAB BOT CONFIG -->
+        <div id="tab-bot" class="tab-pane">
+            <div class="section">
+                <h3><i class="fab fa-telegram"></i> Konfigurasi Bot Telegram</h3>
+                
+                <div class="form-group">
+                    <label>Status Bot</label>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <label class="switch">
+                            <input type="checkbox" id="botOnlineToggle">
+                            <span class="slider-round"></span>
+                        </label>
+                        <span id="botStatusTextConfig">Online</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Username Bot</label>
+                    <input type="text" id="botUsername" value="BizzyImpactBot" placeholder="@username">
+                    <small style="font-size:0.7rem;">Username bot tanpa @</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Link Bot</label>
+                    <input type="url" id="botLink" value="https://t.me/BizzyImpactBot" placeholder="https://t.me/...">
+                </div>
+
+                <button class="btn-primary" id="saveBotConfigBtn">
+                    <i class="fas fa-save"></i> Simpan Konfigurasi Bot
+                </button>
+
+                <div class="broadcast-preview" style="margin-top: 20px;">
+                    <p><strong><i class="fas fa-bullhorn"></i> Broadcast ke Bot</strong></p>
+                    <p style="font-size: 0.7rem; margin-bottom: 10px;">Kirim pesan broadcast ke semua user via bot</p>
+                    <textarea id="broadcastMessage" rows="3" style="width:100%; padding:12px; background:rgba(0,0,0,0.05); border-radius:16px; margin-bottom:10px;" placeholder="Tulis pesan broadcast..."></textarea>
+                    <button id="sendBroadcastBtn" class="btn-primary">Kirim Broadcast</button>
+                </div>
+
+                <div style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.05); border-radius: 12px;">
+                    <p><i class="fab fa-telegram"></i> <strong>Command Bot yang tersedia:</strong></p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/start</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/login</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/logout</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/cek_antrian</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/data_akun</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/data_joki</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/laporan</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/rating</code>
+                        <code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 8px;">/help</code>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
@@ -528,6 +638,72 @@
             return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
         }
 
+        function openBot() {
+            window.open('https://t.me/BizzyImpactBot', '_blank');
+        }
+
+        // ==================== BOT CONFIG FUNCTIONS ====================
+        async function loadBotConfig() {
+            const botConfigRef = ref(db, 'bizzy_settings/bot_config');
+            const snapshot = await get(botConfigRef);
+            const config = snapshot.val();
+            
+            if (config) {
+                document.getElementById('botOnlineToggle').checked = config.online || false;
+                document.getElementById('botStatusTextConfig').innerText = config.online ? 'Online' : 'Offline';
+                document.getElementById('botUsername').value = config.username || 'BizzyImpactBot';
+                document.getElementById('botLink').value = config.link || 'https://t.me/BizzyImpactBot';
+                
+                // Update status dot
+                const dot = document.getElementById('botStatusDot');
+                if (config.online) {
+                    dot.className = 'status-dot online';
+                    document.getElementById('botStatusText').innerHTML = '<i class="fab fa-telegram"></i> Bot Online';
+                } else {
+                    dot.className = 'status-dot offline';
+                    document.getElementById('botStatusText').innerHTML = '<i class="fab fa-telegram"></i> Bot Offline';
+                }
+            }
+        }
+
+        async function saveBotConfig() {
+            const config = {
+                online: document.getElementById('botOnlineToggle').checked,
+                username: document.getElementById('botUsername').value.trim(),
+                link: document.getElementById('botLink').value.trim(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            await set(ref(db, 'bizzy_settings/bot_config'), config);
+            showToast("✅ Konfigurasi bot disimpan!");
+            loadBotConfig();
+        }
+
+        async function sendBroadcast() {
+            const message = document.getElementById('broadcastMessage').value.trim();
+            if (!message) {
+                showToast("Masukkan pesan broadcast!");
+                return;
+            }
+            
+            showLoading();
+            try {
+                // Simpan ke Firebase untuk diproses bot
+                await push(ref(db, 'bizzy_broadcasts'), {
+                    message: message,
+                    sender: adminUsername || 'Admin',
+                    timestamp: Date.now(),
+                    sent: false
+                });
+                showToast("✅ Broadcast dikirim! Bot akan memprosesnya.");
+                document.getElementById('broadcastMessage').value = '';
+            } catch (error) {
+                showToast("❌ Gagal mengirim broadcast!");
+            } finally {
+                hideLoading();
+            }
+        }
+
         // ==================== CUSTOM THEME FUNCTIONS ====================
         async function loadTheme() {
             const themeRef = ref(db, 'bizzy_settings/theme');
@@ -547,7 +723,6 @@
                     accentDark: theme.accentDark || '#ff8c00'
                 });
             } else {
-                // Reset to default
                 document.getElementById('primaryColor').value = '#1e88e5';
                 document.getElementById('primaryDark').value = '#0d47a1';
                 document.getElementById('accentColor').value = '#ffd700';
@@ -560,8 +735,6 @@
                     accentDark: '#ff8c00'
                 });
             }
-            
-            // Update preview
             updatePreview();
         }
         
@@ -639,6 +812,12 @@
         document.getElementById('accentColor')?.addEventListener('input', updatePreview);
         document.getElementById('accentDark')?.addEventListener('input', updatePreview);
 
+        document.getElementById('saveBotConfigBtn')?.addEventListener('click', saveBotConfig);
+        document.getElementById('sendBroadcastBtn')?.addEventListener('click', sendBroadcast);
+        document.getElementById('botOnlineToggle')?.addEventListener('change', () => {
+            document.getElementById('botStatusTextConfig').innerText = document.getElementById('botOnlineToggle').checked ? 'Online' : 'Offline';
+        });
+
         // Cek akses admin
         async function checkAdminAccess() {
             if (!adminId) {
@@ -650,7 +829,7 @@
             const snapshot = await get(userRef);
             const userData = snapshot.val();
             
-            if (!userData || (userData.username !== 'admin' && userData.username !== 'bizzyadmin')) {
+            if (!userData || (userData.username !== 'admin' && userData.username !== 'bizzyadmin' && userData.username !== 'Rayy' && userData.username !== 'Jogi')) {
                 document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;"><i class="fas fa-lock" style="font-size:4rem;"></i><h2>Akses Ditolak!</h2><p>Hanya admin yang bisa mengakses panel ini.</p><a href="index.html" style="color:var(--primary-color);">Kembali ke Beranda</a></div>';
                 return false;
             }
@@ -755,6 +934,16 @@
                     processedBy: adminUsername || 'admin'
                 });
                 showToast(`✅ Status pesanan diubah menjadi ${status.toUpperCase()}`);
+                
+                // Notifikasi ke bot
+                try {
+                    await push(ref(db, 'bizzy_bot_notifications'), {
+                        type: 'status_update',
+                        orderId: orderId,
+                        status: status,
+                        timestamp: Date.now()
+                    });
+                } catch(e) {}
             }
         };
 
@@ -882,7 +1071,7 @@
                 const usersArray = Object.entries(users);
                 let html = '<div style="overflow-x:auto;">';
                 html += '<table style="width:100%; border-collapse:collapse;">';
-                html += '<tr style="border-bottom:1px solid rgba(30,136,229,0.3);"><th style="padding:10px; text-align:left;">Username</th><th style="padding:10px; text-align:left;">User ID</th><th style="padding:10px; text-align:left;">Bergabung</th><tr>';
+                html += '<tr style="border-bottom:1px solid rgba(30,136,229,0.3);"><th style="padding:10px; text-align:left;">Username</th><th style="padding:10px; text-align:left;">User ID</th><th style="padding:10px; text-align:left;">Bergabung</th><th style="padding:10px; text-align:left;">Telegram</th></tr>';
                 
                 for (const [id, user] of usersArray) {
                     html += `
@@ -890,6 +1079,7 @@
                             <td style="padding:10px;">${escapeHtml(user.username)}</td>
                             <td style="padding:10px;"><code>${id.substring(0, 12)}...</code></td>
                             <td style="padding:10px;">${new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td style="padding:10px;">${user.telegramId ? '<i class="fas fa-check-circle" style="color:#28a745;"></i> Terhubung' : '<i class="fas fa-times-circle" style="color:#dc3545;"></i> Belum'}</td>
                         </tr>
                     `;
                 }
@@ -903,7 +1093,8 @@
             const hasAccess = await checkAdminAccess();
             if (!hasAccess) return;
             
-            await loadTheme(); // Load custom theme first
+            await loadTheme();
+            await loadBotConfig();
             initTabs();
             loadOrders();
             loadSchedule();
@@ -924,6 +1115,7 @@
             });
         }
 
+        window.openBot = openBot;
         init();
     </script>
 </body>

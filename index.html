@@ -154,6 +154,37 @@
             z-index: 1;
         }
         
+        /* Bot Status Bar */
+        .bot-status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 5px #28a745; }
+        .status-dot.offline { background: #dc3545; }
+        .bot-command-badge {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.65rem;
+        }
+        
         /* Header dengan Lebah Terbang Horizontal di Tengah Tulisan */
         .header {
             text-align: center;
@@ -859,6 +890,44 @@
             background: var(--primary-color, #ffd700);
             color: var(--text-dark, #1a1a2e);
         }
+
+        /* Bot Notification */
+        .bot-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(95deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            z-index: 10001;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .bot-command-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .bot-cmd {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .bot-cmd:hover {
+            background: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -914,10 +983,23 @@
             <i class="fas fa-hourglass-half"></i> Total Antrian: <span id="queueTotal">0</span>
         </div>
         
+        <div style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 16px;">
+            <p style="font-size: 0.7rem; margin-bottom: 8px;"><i class="fab fa-telegram"></i> Bot Telegram:</p>
+            <div class="bot-command-list">
+                <div class="bot-cmd" onclick="copyCommand('/start')">/start</div>
+                <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
+                <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
+                <div class="bot-cmd" onclick="copyCommand('/data_joki')">/data_joki</div>
+                <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+                <div class="bot-cmd" onclick="copyCommand('/rating')">/rating</div>
+            </div>
+        </div>
+        
         <ul class="sidebar-menu">
             <li onclick="openMyOrders()"><i class="fas fa-box"></i> Pesanan Saya</li>
             <li onclick="openCustomerService()"><i class="fas fa-headset"></i> Customer Service</li>
             <li onclick="openAdmin()"><i class="fas fa-user-shield"></i> Admin Panel</li>
+            <li onclick="openBotCommands()"><i class="fab fa-telegram"></i> Bot Commands</li>
             <li onclick="showPrivacy()"><i class="fas fa-shield-alt"></i> Kebijakan Privasi</li>
             <li onclick="showReadme()"><i class="fas fa-info-circle"></i> README</li>
             <li onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
@@ -933,6 +1015,17 @@
     </div>
 
     <div class="container" id="mainContainer">
+        <!-- Bot Status Bar -->
+        <div class="bot-status-bar">
+            <div class="bot-status">
+                <span class="status-dot online" id="botStatusDot"></span>
+                <span id="botStatusText">Bizzy Impact Bot</span>
+            </div>
+            <div class="bot-command-badge">
+                <i class="fab fa-telegram"></i> @BizzyImpactBot
+            </div>
+        </div>
+
         <div class="header">
             <div class="flying-bee">
                 <div class="bee-wing"></div>
@@ -1055,6 +1148,15 @@
             <div id="page-info" class="page">
                 <div class="info-card"><h3><i class="fas fa-info-circle"></i> Tentang Kami</h3><p>Bizzy Impact Official adalah penyedia jasa joki Genshin Impact terpercaya. Kami melayani explore region, leveling character, dan berbagai kebutuhan Genshin Impact Anda.</p></div>
                 <div class="info-card" style="margin-top: 15px;"><h3><i class="fas fa-check-circle"></i> Keunggulan Kami</h3><p>✅ Proses Cepat & Aman<br>✅ Harga Terjangkau<br>✅ Bisa Request Custom<br>✅ Support 24 Jam</p></div>
+                <div class="info-card" style="margin-top: 15px;"><h3><i class="fab fa-telegram"></i> Bot Telegram</h3><p>Gunakan bot kami untuk cek antrian, data akun, dan laporan:</p>
+                <div class="bot-command-list" style="justify-content: center;">
+                    <div class="bot-cmd" onclick="copyCommand('/start')">/start</div>
+                    <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
+                    <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
+                    <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+                </div>
+                <p style="margin-top: 10px; font-size: 0.7rem;">@BizzyImpactBot</p>
+                </div>
             </div>
             
             <button class="btn-order" id="orderBtn"><i class="fas fa-shopping-cart"></i> PESAN SEKARANG</button>
@@ -1127,6 +1229,66 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // ==================== BOT INTEGRATION ====================
+        const BOT_USERNAME = "BizzyImpactBot";
+        const BOT_LINK = "https://t.me/BizzyImpactBot";
+        
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            showToast(`✅ Command ${command} disalin! Gunakan di @${BOT_USERNAME}`);
+        }
+        
+        function openBotCommands() {
+            window.open(BOT_LINK, '_blank');
+            showToast(`📱 Buka @${BOT_USERNAME} di Telegram untuk menggunakan command`);
+        }
+        
+        function showBotNotification(message) {
+            const existing = document.querySelector('.bot-notification');
+            if (existing) existing.remove();
+            const notif = document.createElement('div');
+            notif.className = 'bot-notification';
+            notif.innerHTML = `<i class="fab fa-telegram"></i> ${message}`;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 4000);
+        }
+        
+        // Cek status bot via Firebase
+        function checkBotStatus() {
+            const botStatusRef = ref(db, 'bizzy_settings/bot_status');
+            onValue(botStatusRef, (snapshot) => {
+                const status = snapshot.val();
+                const dot = document.getElementById('botStatusDot');
+                const text = document.getElementById('botStatusText');
+                if (status && status.online) {
+                    dot.className = 'status-dot online';
+                    text.innerHTML = '<i class="fab fa-telegram"></i> Bot Online';
+                } else {
+                    dot.className = 'status-dot offline';
+                    text.innerHTML = '<i class="fab fa-telegram"></i> Bot Offline';
+                }
+            });
+        }
+        
+        // Kirim notifikasi ke bot saat order baru
+        async function notifyBotNewOrder(orderData) {
+            try {
+                // Simpan ke Firebase untuk notifikasi bot
+                await push(ref(db, 'bizzy_bot_notifications'), {
+                    type: 'new_order',
+                    orderId: orderData.orderId,
+                    username: orderData.username,
+                    product: orderData.productName,
+                    amount: orderData.productPrice,
+                    timestamp: Date.now(),
+                    sent: false
+                });
+                console.log('📢 Notifikasi order dikirim ke bot');
+            } catch(e) {
+                console.error('Gagal kirim notifikasi ke bot:', e);
+            }
+        }
         
         // ==================== MUSIC PLAYER GLOBAL ====================
         const audioElement = document.getElementById('backgroundAudio');
@@ -1298,6 +1460,9 @@
             .flying-bee .bee-eye { background: #0d47a1; }
             .flying-bee .bee-stinger { background: #0d47a1; }
             .flying-bee .bee-wing { background: rgba(30,136,229,0.3); border-color: #0d47a1; }
+            .bot-status-bar { background: rgba(255,255,255,0.7); color: #0d47a1; }
+            .bot-cmd { background: #e3f2fd; color: #0d47a1; }
+            .bot-cmd:hover { background: #1e88e5; color: white; }
         `;
         
         const DARK_MODE_CSS = `
@@ -1357,6 +1522,9 @@
             .flying-bee .bee-eye { background: #ff9900; }
             .flying-bee .bee-stinger { background: #ff9900; }
             .flying-bee .bee-wing { background: rgba(255,215,0,0.3); border-color: #ffd700; }
+            .bot-status-bar { background: rgba(0,0,0,0.5); color: #ffd700; }
+            .bot-cmd { background: rgba(255,215,0,0.15); color: #ffd700; }
+            .bot-cmd:hover { background: #ffd700; color: #1a1a1a; }
         `;
         
         let currentMode = localStorage.getItem('bizzy_theme_mode') || 'light';
@@ -1430,6 +1598,9 @@
             document.getElementById('reviewPackage').value = '';
             selectedRating = 0;
             document.querySelectorAll('.star-input').forEach(s => s.classList.remove('active'));
+            
+            // Notifikasi ke bot
+            showBotNotification("⭐ Ulasan baru! Cek di @BizzyImpactBot");
         }
         
         // ==================== VARIABLES ====================
@@ -1617,6 +1788,9 @@
             localStorage.setItem('bizzy_username', username);
             showToast("✅ Pendaftaran berhasil!");
             showLogin();
+            
+            // Notifikasi ke bot
+            showBotNotification("🎉 User baru terdaftar! Cek di @BizzyImpactBot");
         }
         
         async function handleLogin() {
@@ -1648,6 +1822,7 @@
             document.getElementById('welcomeUsername').innerText = username;
             loadMyQueue();
             showToast("✅ Login berhasil!");
+            showBotNotification(`👋 Selamat datang ${username}! Gunakan bot @${BOT_USERNAME} untuk cek antrian`);
         }
         
         async function handleLogout() {
@@ -1670,7 +1845,7 @@
         function openCustomerService() { window.location.href = 'cs.html'; }
         function openAdmin() { window.location.href = 'admin.html'; }
         function showPrivacy() { alert("🔒 KEBIJAKAN PRIVASI\n\nWeb Bizzy Impact Official aman dan terpercaya. Data Anda tidak akan disalahgunakan.\n\n✅ Data tidak dibagikan ke pihak ketiga\n✅ Transaksi aman dengan QRIS\n✅ Support 24 jam"); }
-        function showReadme() { alert("📢 README / INFO\n\nBizzy Impact Official - Jasa Joki Genshin Impact\n\n✅ Explore Region 100%\n✅ Leveling Character 1-90\n✅ Proses Cepat & Aman\n✅ Harga Terjangkau\n\nCara Order:\n1. Pilih paket\n2. Isi data login game\n3. Upload bukti transfer\n\nTerima kasih! 🙏"); }
+        function showReadme() { alert("📢 README / INFO\n\nBizzy Impact Official - Jasa Joki Genshin Impact\n\n✅ Explore Region 100%\n✅ Leveling Character 1-90\n✅ Proses Cepat & Aman\n✅ Harga Terjangkau\n\n🤖 Bot Telegram: @BizzyImpactBot\nCommand: /start, /cek_antrian, /data_akun, /laporan\n\nCara Order:\n1. Pilih paket\n2. Isi data login game\n3. Upload bukti transfer\n\nTerima kasih! 🙏"); }
         
         function initCategoryNav() {
             const btns = document.querySelectorAll('.category-btn');
@@ -1791,6 +1966,8 @@
         window.openAdmin = openAdmin;
         window.showPrivacy = showPrivacy;
         window.showReadme = showReadme;
+        window.copyCommand = copyCommand;
+        window.openBotCommands = openBotCommands;
         
         applyTheme(currentMode);
         document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => applyTheme(btn.getAttribute('data-mode'))));
@@ -1803,6 +1980,9 @@
         // Setup music player
         setupMusicPlayer();
         loadSavedMusic();
+        
+        // Bot integration
+        checkBotStatus();
         
         loadVideoUrl();
         loadSliders();

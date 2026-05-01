@@ -44,6 +44,43 @@
             padding: 20px;
             min-height: 100vh;
         }
+        
+        /* Bot Status Bar */
+        .bot-status-bar {
+            background: rgba(0,0,0,0.05);
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 5px #28a745; }
+        .status-dot.offline { background: #dc3545; }
+        .bot-command-badge {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .bot-command-badge:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
         .form-card {
             background: var(--bg-card);
             backdrop-filter: blur(15px);
@@ -234,12 +271,42 @@
             color: var(--primary-color);
             margin: 10px 0;
         }
+        .bot-cmd-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .bot-cmd {
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .bot-cmd:hover {
+            background: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
 
     <div class="container">
+        <!-- Bot Status Bar -->
+        <div class="bot-status-bar">
+            <div class="bot-status">
+                <span class="status-dot online" id="botStatusDot"></span>
+                <span id="botStatusText"><i class="fab fa-telegram"></i> Bizzy Impact Bot</span>
+            </div>
+            <div class="bot-command-badge" onclick="openBot()">
+                <i class="fab fa-telegram"></i> @BizzyImpactBot
+            </div>
+        </div>
+
         <div class="form-card">
             <div class="logo">
                 <h1><i class="fas fa-crown"></i> Bizzy Impact</h1>
@@ -308,6 +375,16 @@
                 <i class="fas fa-arrow-left"></i> Kembali
             </button>
         </div>
+
+        <!-- Info Bot Commands -->
+        <div style="background: rgba(0,0,0,0.03); border-radius: 20px; padding: 16px; text-align: center;">
+            <p><i class="fab fa-telegram"></i> <strong>Cek status pesanan via Bot Telegram</strong></p>
+            <div class="bot-cmd-list">
+                <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
+                <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
+                <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+            </div>
+        </div>
     </div>
 
     <div id="paymentModal" class="payment-modal">
@@ -375,6 +452,22 @@
             }
         }
 
+        async function loadBotStatus() {
+            const botConfigRef = ref(db, 'bizzy_settings/bot_config');
+            const snapshot = await get(botConfigRef);
+            const config = snapshot.val();
+            const dot = document.getElementById('botStatusDot');
+            const text = document.getElementById('botStatusText');
+            
+            if (config && config.online) {
+                dot.className = 'status-dot online';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Online';
+            } else {
+                dot.className = 'status-dot offline';
+                text.innerHTML = '<i class="fab fa-telegram"></i> Bot Offline';
+            }
+        }
+
         const ZAKI_API_URL = 'https://qris.zakki.store/topup';
         const ZAKI_CHECK_URL = 'https://qris.zakki.store/cektopup';
         const ZAKI_TOKEN = '13db95d8e39ea2';
@@ -391,6 +484,15 @@
             toast.innerHTML = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
+        }
+
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            showToast(`✅ Command ${command} disalin! Gunakan di @BizzyImpactBot`);
+        }
+
+        function openBot() {
+            window.open('https://t.me/BizzyImpactBot', '_blank');
         }
 
         function showLoading() { document.getElementById("loadingOverlay").classList.add("show"); }
@@ -524,6 +626,37 @@
             }
         }
 
+        async function notifyBotNewOrder(order) {
+            try {
+                // Kirim notifikasi ke Firebase untuk bot
+                await push(ref(db, 'bizzy_bot_notifications'), {
+                    type: 'new_order',
+                    orderId: order.orderId,
+                    username: order.username,
+                    product: order.productName,
+                    amount: order.productPrice,
+                    queueNumber: order.queueNumber,
+                    phoneNumber: order.phoneNumber,
+                    timestamp: Date.now(),
+                    sent: false
+                });
+                console.log('📢 Notifikasi order baru dikirim ke bot');
+                
+                // Notifikasi langsung ke Telegram (opsional)
+                await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type':application/json' },
+                    body: JSON.stringify({
+                        chat_id: '7966336512',
+                        text: `🆕 *PESANAN BARU DI WEB!*\n\n👤 User: ${order.username}\n📦 Produk: ${order.productName}\n💰 Harga: Rp ${order.productPrice.toLocaleString()}\n📱 WA: ${order.phoneNumber}\n🎫 Antrian: ${order.queueNumber}\n\nGunakan /ambil_data ${order.username} di bot untuk detail.`,
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(e => console.log);
+            } catch(e) {
+                console.log('Gagal kirim notifikasi ke bot:', e);
+            }
+        }
+
         async function processSuccess() {
             const queueNumber = currentQueueNumber;
             const loginEmail = document.getElementById('loginEmail').value.trim();
@@ -563,17 +696,8 @@
 
             await push(ref(db, 'bizzy_orders'), order);
             
-            try {
-                await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: '7966336512',
-                        text: `📋 *PESANAN BARU BIZZY IMPACT*\n\n👤 User: ${orderData.username}\n📦 Produk: ${orderData.productName}\n💰 Harga: Rp ${orderData.productPrice}\n📱 WA: ${phoneNumber}\n🆔 Queue: ${queueNumber}`,
-                        parse_mode: 'Markdown'
-                    })
-                });
-            } catch(e) {}
+            // Kirim notifikasi ke bot
+            await notifyBotNewOrder(order);
 
             localStorage.setItem('bizzy_last_order', JSON.stringify(order));
             document.getElementById('paymentModal').classList.remove('active');
@@ -620,9 +744,13 @@
         function goBack() { window.location.href = 'index.html'; }
 
         await loadCustomTheme();
+        await loadBotStatus();
         loadQueueNumber();
         loadData();
+        
         window.goBack = goBack;
+        window.copyCommand = copyCommand;
+        window.openBot = openBot;
     </script>
 </body>
 </html>
