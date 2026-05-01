@@ -186,43 +186,40 @@
             margin-top: 5px;
         }
         
-        /* Video Card - Bisa Diganti URL via Admin */
+        /* Video Card */
         .video-card {
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 16px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 0px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255,215,0,0.3);
+            border: 0px solid rgba(255,215,0,0.3);
             position: relative;
-            overflow: hidden;
         }
         .video-card::before {
-            content: "BIZZY IMPACT";
+            content: ;
             position: absolute;
-            top: 10px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.7), transparent);
-            padding: 5px;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            padding: 4px 16px;
+            border-radius: 30px;
             font-size: 0.7rem;
             font-weight: bold;
-            letter-spacing: 2px;
+            color: #1a1a2e;
+            white-space: nowrap;
             z-index: 2;
-            color: #ffd700;
         }
         .video-wrapper {
             border-radius: 16px;
             overflow: hidden;
-            margin-top: 25px;
         }
         .promo-video {
             width: 100%;
-            height: 200px;
+            height: 180px;
             object-fit: cover;
             border-radius: 16px;
-            pointer-events: none; /* Tidak bisa di-pause/di-klik */
+            pointer-events: none;
         }
         
         /* Slider */
@@ -650,7 +647,7 @@
             <div class="tagline">OFFICIAL JASA JOKI GENSHIN IMPACT</div>
         </div>
         
-        <!-- Video Card (Bisa diganti URL via Admin) -->
+        <!-- Video Card -->
         <div class="video-card">
             <div class="video-wrapper">
                 <video id="promoVideo" class="promo-video" autoplay loop muted playsinline>
@@ -911,29 +908,48 @@
             }, 500);
         }, 2000);
         
-        // Web Status Check (Open/Close)
+        // Web Status Check (Open/Close) - FIXED
         async function checkWebStatus() {
             const statusRef = ref(db, 'bizzy_settings/web_status');
             const snapshot = await get(statusRef);
             const status = snapshot.val();
-            if (status && status.closed) {
+            
+            if (status) {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const currentMinute = now.getMinutes();
-                const closeHour = status.closeHour || 0;
-                const closeMinute = status.closeMinute || 0;
-                const openHour = status.openHour || 8;
-                const openMinute = status.openMinute || 0;
                 
-                const isClosed = (currentHour > closeHour || (currentHour === closeHour && currentMinute >= closeMinute)) &&
-                                 (currentHour < openHour || (currentHour === openHour && currentMinute < openMinute));
+                // Konversi ke menit
+                const currentTotalMinutes = currentHour * 60 + currentMinute;
+                const closeTotalMinutes = (status.closeHour || 23) * 60 + (status.closeMinute || 0);
+                const openTotalMinutes = (status.openHour || 8) * 60 + (status.openMinute || 0);
                 
-                if (isClosed || status.manualClosed) {
+                let shouldClose = false;
+                
+                // Cek manual closed
+                if (status.manualClosed === true) {
+                    shouldClose = true;
+                } 
+                // Cek jadwal otomatis
+                else if (status.closeHour !== undefined && status.openHour !== undefined) {
+                    if (closeTotalMinutes > openTotalMinutes) {
+                        // Tutup malam (23:00) buka pagi (08:00)
+                        shouldClose = (currentTotalMinutes >= closeTotalMinutes || currentTotalMinutes < openTotalMinutes);
+                    } else {
+                        // Tutup siang (12:00) buka sore (13:00)
+                        shouldClose = (currentTotalMinutes >= closeTotalMinutes && currentTotalMinutes < openTotalMinutes);
+                    }
+                }
+                
+                if (shouldClose) {
                     document.getElementById('webClosedOverlay').classList.add('active');
-                    document.getElementById('closedMessage').innerHTML = status.message || `Web akan buka kembali pukul ${openHour.toString().padStart(2,'0')}:${openMinute.toString().padStart(2,'0')} WIB`;
+                    const openHour = (status.openHour || 8).toString().padStart(2,'0');
+                    const openMinute = (status.openMinute || 0).toString().padStart(2,'0');
+                    document.getElementById('closedMessage').innerHTML = status.message || `Web akan buka kembali pukul ${openHour}:${openMinute} WIB`;
                     return false;
                 }
             }
+            
             document.getElementById('webClosedOverlay').classList.remove('active');
             return true;
         }
