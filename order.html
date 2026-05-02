@@ -478,6 +478,9 @@
         let checkInterval = null;
         let currentQueueNumber = 0;
 
+        let currentUserId = localStorage.getItem("bizzy_userId");
+        let currentUsername = localStorage.getItem("bizzy_username");
+
         function showToast(msg) {
             let toast = document.createElement("div");
             toast.className = "toast";
@@ -522,6 +525,9 @@
                 setTimeout(() => { window.location.href = 'index.html'; }, 2000);
                 return;
             }
+
+            currentUserId = userId;
+            currentUsername = username;
 
             orderData = {
                 productName: product,
@@ -626,9 +632,10 @@
             }
         }
 
+        // Notifikasi ke bot (2 bot sekaligus)
         async function notifyBotNewOrder(order) {
             try {
-                // Kirim notifikasi ke Firebase untuk bot
+                // Simpan ke Firebase untuk notifikasi bot
                 await push(ref(db, 'bizzy_bot_notifications'), {
                     type: 'new_order',
                     orderId: order.orderId,
@@ -641,17 +648,28 @@
                     sent: false
                 });
                 console.log('📢 Notifikasi order baru dikirim ke bot');
-                
-                // Notifikasi langsung ke Telegram (opsional)
-                await fetch(`https://api.telegram.org/bot8352764997:AAEP5JE2llOvuoNFoJvDlATOl2Mrzo4VZ-M/sendMessage`, {
+
+                // Notifikasi ke BOT1 (8115235461) - Owner 1
+                await fetch(`https://api.telegram.org/bot8115235461:AAE7JxztTGtd_GtaMwa4eT3SEfHQL0mwhtY/sendMessage`, {
                     method: 'POST',
-                    headers: { 'Content-Type':application/json' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: '7966336512',
                         text: `🆕 *PESANAN BARU DI WEB!*\n\n👤 User: ${order.username}\n📦 Produk: ${order.productName}\n💰 Harga: Rp ${order.productPrice.toLocaleString()}\n📱 WA: ${order.phoneNumber}\n🎫 Antrian: ${order.queueNumber}\n\nGunakan /ambil_data ${order.username} di bot untuk detail.`,
                         parse_mode: 'Markdown'
                     })
-                }).catch(e => console.log);
+                }).catch(e => console.log('Gagal kirim ke BOT1:', e));
+                
+                // Notifikasi ke BOT2 (8607918530) - Owner 2
+                await fetch(`https://api.telegram.org/bot8607918530:AAGylETleFSZJctKLOLt_bq7wzQuoVqxcEs/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: '5484019887',
+                        text: `🆕 *PESANAN BARU DI WEB!*\n\n👤 User: ${order.username}\n📦 Produk: ${order.productName}\n💰 Harga: Rp ${order.productPrice.toLocaleString()}\n📱 WA: ${order.phoneNumber}\n🎫 Antrian: ${order.queueNumber}\n\nGunakan /ambil_data ${order.username} di bot untuk detail.`,
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(e => console.log('Gagal kirim ke BOT2:', e));
             } catch(e) {
                 console.log('Gagal kirim notifikasi ke bot:', e);
             }
@@ -696,7 +714,6 @@
 
             await push(ref(db, 'bizzy_orders'), order);
             
-            // Kirim notifikasi ke bot
             await notifyBotNewOrder(order);
 
             localStorage.setItem('bizzy_last_order', JSON.stringify(order));
@@ -726,6 +743,11 @@
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const proofLink = document.getElementById('proofLink').value.trim();
 
+            if (!currentUserId || !currentUsername) {
+                showToast("❌ Silakan login terlebih dahulu!");
+                window.location.href = 'index.html';
+                return;
+            }
             if (!loginEmail) { showToast("Masukkan Email/Username!"); return; }
             if (!loginPassword) { showToast("Masukkan Password!"); return; }
             if (!phoneNumber) { showToast("Masukkan Nomor Telepon!"); return; }
@@ -742,6 +764,11 @@
         });
 
         function goBack() { window.location.href = 'index.html'; }
+
+        if (!currentUserId || !currentUsername) {
+            showToast("❌ Silakan login terlebih dahulu!");
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+        }
 
         await loadCustomTheme();
         await loadBotStatus();

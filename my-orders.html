@@ -328,7 +328,6 @@
             }
         }
 
-        // Load bot status
         async function loadBotStatus() {
             const botConfigRef = ref(db, 'bizzy_settings/bot_config');
             const snapshot = await get(botConfigRef);
@@ -399,6 +398,11 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        }
+
         async function loadOrders() {
             if (!currentUserId) {
                 document.getElementById('ordersList').innerHTML = `
@@ -462,23 +466,28 @@
                 }
                 document.getElementById('ordersList').innerHTML = html;
             } catch (error) {
+                console.error("Error loading orders:", error);
                 document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat pesanan</p><button class="btn-secondary" onclick="location.reload()">Coba Lagi</button></div>`;
             } finally {
                 hideLoading();
             }
         }
 
-        function manualRefresh() { showToast("🔄 Memuat ulang data..."); loadOrders(); }
-        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
-        function goBack() { window.location.href = 'index.html'; }
+        function manualRefresh() { 
+            showToast("🔄 Memuat ulang data..."); 
+            loadOrders(); 
+        }
+
+        function goBack() { 
+            window.location.href = 'index.html'; 
+        }
 
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(() => { if (currentUserId) loadOrders(); }, 10000);
+            refreshInterval = setInterval(() => { 
+                if (currentUserId) loadOrders(); 
+            }, 10000);
         }
-
-        await loadCustomTheme();
-        await loadBotStatus();
 
         if (!currentUserId || !currentUsername) {
             document.getElementById('ordersList').innerHTML = `<div class="empty-state"><i class="fas fa-lock"></i><p>Silakan login terlebih dahulu</p><button class="btn-secondary" onclick="window.location.href='index.html'">Login Sekarang</button></div>`;
@@ -486,6 +495,9 @@
             loadOrders();
             startAutoRefresh();
         }
+
+        await loadCustomTheme();
+        await loadBotStatus();
 
         window.goBack = goBack;
         window.manualRefresh = manualRefresh;
