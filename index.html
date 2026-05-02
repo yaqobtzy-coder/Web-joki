@@ -8,11 +8,126 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <!-- LOADING SCREEN STYLE -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* LOADING SCREEN - DARI KODE YANG ANDA BERIKAN */
+        .loading-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .bee-unit {
+            position: absolute;
+            z-index: 100;
+            width: 15px; height: 15px;
+            background: #FFD700;
+            border: 2.5px solid #1a1a2e;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transform: scale(0);
+            animation: 
+                spawn 0.8s ease forwards, 
+                toBee 0.8s ease 1s forwards,
+                fullSequence 12s ease-in-out 1.8s forwards;
+        }
+
+        .bee-inner { opacity: 0; width: 100%; height: 100%; position: relative; }
+        .bee-unit.ready .bee-inner { opacity: 1; transition: 0.5s; }
+
+        .stripes {
+            position: absolute; width: 100%; height: 6px;
+            background: #1a1a2e; top: 12px; box-shadow: 0 12px 0 #1a1a2e;
+        }
+
+        .wings {
+            position: absolute; top: -12px; width: 100%;
+            display: flex; justify-content: space-between;
+        }
+
+        .wing {
+            width: 20px; height: 15px; background: rgba(200,220,255,0.8);
+            border: 1.5px solid #1a1a2e; border-radius: 50%;
+            animation: flap 0.1s infinite alternate;
+        }
+
+        .brand-text {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-left: 50px;
+        }
+
+        .bizzy {
+            font-size: 55px; 
+            color: #0047AB;
+            margin: 0; 
+            line-height: 0.9;
+            opacity: 0;
+            clip-path: inset(0 100% 0 0);
+            animation: revealBizzy 1.5s ease 5.5s forwards;
+        }
+
+        .bizzy span {
+            color: #FFD700;
+        }
+
+        .impact {
+            font-size: 70px; 
+            font-weight: 900; 
+            letter-spacing: -3px; 
+            color: #1a1a2e;
+            margin: 0;
+            opacity: 0;
+            display: flex;
+            animation: revealImpact 1.2s ease 8s forwards;
+        }
+
+        @keyframes spawn { to { transform: scale(1); } }
+        @keyframes toBee { to { width: 55px; height: 42px; border-radius: 25px; } }
+        @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(0.3); } }
+        @keyframes revealBizzy { to { opacity: 1; clip-path: inset(0 0 0 0); } }
+        @keyframes revealImpact { to { opacity: 1; } }
+        @keyframes fullSequence {
+            0% { transform: translate(0, 0) scaleX(1); }
+            12% { transform: translate(250px, 0) scaleX(1); } 
+            25% { transform: translate(-250px, 0) scaleX(-1); } 
+            40% { transform: translate(200px, -20px) scaleX(1); } 
+            60% { transform: translate(-200px, 30px) scaleX(-1); } 
+            80% { transform: translate(-30px, -60px) scaleX(1); } 
+            100% { transform: translate(-88px, -50px) scaleX(1); } 
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            z-index: 9999;
+            transition: opacity 0.8s, visibility 0.8s;
+        }
+        .loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+    </style>
+    
     <style id="theme-style">
         /* Default Mode - Akan diisi oleh mode yang dipilih user */
     </style>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
@@ -26,102 +141,6 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-        }
-        
-        /* Loading Animation */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 9999;
-            transition: opacity 0.5s;
-        }
-        .loading-screen.fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .logo-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
-        .bee-container {
-            position: relative;
-            animation: float 3s ease-in-out infinite;
-        }
-        .bee-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50% 50% 40% 40%;
-            position: relative;
-            overflow: hidden;
-        }
-        .bee-icon::before {
-            content: '';
-            position: absolute;
-            top: 25px;
-            left: 0;
-            width: 100%;
-            height: 12px;
-            box-shadow: 0 25px 0;
-        }
-        .eye {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        .wing {
-            position: absolute;
-            top: -15px;
-            left: 10px;
-            width: 40px;
-            height: 30px;
-            border-radius: 50% 50% 0 50%;
-            transform-origin: bottom right;
-            animation: flap 0.15s ease-in-out infinite alternate;
-        }
-        .wing.right {
-            left: 35px;
-            border-radius: 50% 50% 50% 0%;
-            transform-origin: bottom left;
-        }
-        .text-container {
-            text-align: left;
-        }
-        .brand-main {
-            font-size: 42px;
-            font-weight: 800;
-            margin: 0;
-            line-height: 1;
-        }
-        .brand-sub {
-            font-size: 52px;
-            font-weight: 900;
-            margin: 0;
-            line-height: 0.8;
-            letter-spacing: -2px;
-        }
-        @keyframes float {
-            0%,100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        @keyframes flap {
-            from { transform: rotate(10deg) skewX(10deg); }
-            to { transform: rotate(-20deg) skewX(-10deg); }
-        }
-        .loading-text {
-            margin-top: 20px;
-            font-size: 0.8rem;
         }
         
         /* Web Close Overlay */
@@ -183,9 +202,13 @@
             border-radius: 20px;
             font-family: monospace;
             font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .bot-command-badge:hover {
+            background: var(--primary-color);
+            color: white;
         }
         
-        /* Header dengan Lebah Terbang Horizontal di Tengah Tulisan */
         .header {
             text-align: center;
             margin-bottom: 16px;
@@ -439,18 +462,19 @@
         
         .category-tabs {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             overflow-x: auto;
             margin-bottom: 20px;
             padding-bottom: 8px;
+            flex-wrap: wrap;
         }
         .category-btn {
             backdrop-filter: blur(8px);
-            padding: 8px 20px;
+            padding: 6px 14px;
             border-radius: 30px;
             white-space: nowrap;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
             transition: 0.2s;
         }
@@ -458,8 +482,8 @@
         .price-card {
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
             cursor: pointer;
             transition: 0.2s;
         }
@@ -468,19 +492,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
         .price-title {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 700;
         }
         .price-value {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             font-weight: 800;
-            padding: 4px 12px;
+            padding: 2px 10px;
             border-radius: 20px;
+        }
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin: 15px 0 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid;
+            display: inline-block;
         }
         
         .btn-order {
@@ -509,6 +540,7 @@
             margin-top: 20px;
         }
         
+        /* BOTTOM NAV WITH SWITCH BUTTON */
         .bottom-nav {
             backdrop-filter: blur(12px);
             border-radius: 40px;
@@ -521,18 +553,44 @@
             margin: 0 auto;
             z-index: 100;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
         }
         .nav-item {
             text-align: center;
             cursor: pointer;
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-radius: 30px;
             transition: 0.2s;
             flex: 1;
         }
-        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 4px; }
-        .nav-item span { font-size: 0.65rem; }
+        .nav-item i { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+        .nav-item span { font-size: 0.6rem; }
+        
+        .nav-switch-btn {
+            background: rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 30px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-switch-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-group {
+            display: flex;
+            flex: 6;
+            gap: 4px;
+            transition: 0.3s ease;
+        }
         
         .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
@@ -548,7 +606,6 @@
         }
         .info-card h3 { margin-bottom: 12px; }
         
-        /* Rating & Ulasan Styles */
         .rating-summary {
             background: rgba(0,0,0,0.05);
             border-radius: 20px;
@@ -646,7 +703,6 @@
             opacity: 0.5;
         }
         
-        /* Music Player Modal Styles */
         .music-modal {
             position: fixed;
             top: 0;
@@ -891,7 +947,6 @@
             color: var(--text-dark, #1a1a2e);
         }
 
-        /* Bot Notification */
         .bot-notification {
             position: fixed;
             top: 20px;
@@ -928,28 +983,37 @@
             background: var(--primary-color);
             color: white;
         }
+        
+        .operational-hours {
+            text-align: center;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <!-- Loading Animation -->
+    <!-- LOADING SCREEN - DARI KODE YANG ANDA BERIKAN -->
     <div class="loading-screen" id="loadingScreen">
-        <div class="logo-box">
-            <div class="bee-container">
-                <div class="wing"></div>
-                <div class="wing right"></div>
-                <div class="bee-icon">
-                    <div class="eye"></div>
+        <div class="loading-container">
+            <div class="bee-unit" id="bee">
+                <div class="bee-inner">
+                    <div class="wings">
+                        <div class="wing"></div>
+                        <div class="wing"></div>
+                    </div>
+                    <div class="stripes"></div>
                 </div>
             </div>
-            <div class="text-container">
-                <p class="brand-main">Bizzy</p>
-                <p class="brand-sub">Impact</p>
+            <div class="brand-text">
+                <h1 class="bizzy">BI<span>ZZ</span>Y</h1>
+                <div class="impact">IMPACT</div>
             </div>
         </div>
-        <div class="loading-text">Loading...</div>
     </div>
 
-    <!-- Web Closed Overlay -->
     <div class="web-closed-overlay" id="webClosedOverlay">
         <div class="web-closed-card">
             <i class="fas fa-clock" style="font-size: 3rem;"></i>
@@ -961,7 +1025,6 @@
 
     <div class="overlay" id="overlayEl"></div>
     
-    <!-- Sidebar -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1015,13 +1078,12 @@
     </div>
 
     <div class="container" id="mainContainer">
-        <!-- Bot Status Bar -->
         <div class="bot-status-bar">
             <div class="bot-status">
                 <span class="status-dot online" id="botStatusDot"></span>
                 <span id="botStatusText">Bizzy Impact Bot</span>
             </div>
-            <div class="bot-command-badge">
+            <div class="bot-command-badge" onclick="openBot()">
                 <i class="fab fa-telegram"></i> @BizzyImpactBot
             </div>
         </div>
@@ -1039,6 +1101,10 @@
                 <i class="fas fa-crown"></i> BIZZY IMPACT
             </div>
             <div class="tagline">OFFICIAL JASA JOKI GENSHIN IMPACT</div>
+        </div>
+        
+        <div class="operational-hours" id="operationalHours">
+            <i class="fas fa-clock"></i> JAM OPERASIONAL KAMI 09:30 - 22:05 WIB
         </div>
         
         <div class="video-card">
@@ -1095,34 +1161,163 @@
             <div class="category-tabs">
                 <div class="category-btn active" data-cat="explore">🗺️ EXPLORE</div>
                 <div class="category-btn" data-cat="character">⚔️ CHARACTER</div>
+                <div class="category-btn" data-cat="weapon">⚔️ WEAPON</div>
+                <div class="category-btn" data-cat="talent">📚 TALENT</div>
+                <div class="category-btn" data-cat="quest">📜 QUEST</div>
                 <div class="category-btn" data-cat="reviews">⭐ ULASAN</div>
                 <div class="category-btn" data-cat="info">ℹ️ INFO</div>
             </div>
             
+            <!-- PAGE EXPLORE - LENGKAP -->
             <div id="page-explore" class="page active">
-                <div class="price-card" data-name="MONDSTADT" data-price="150000"><div class="price-header"><span class="price-title"><i class="fas fa-map-marker-alt"></i> MONDSTADT</span><span class="price-value">Rp 150.000</span></div></div>
-                <div class="price-card" data-name="DRAGONSPINE" data-price="70000"><div class="price-header"><span class="price-title"><i class="fas fa-mountain"></i> DRAGONSPINE</span><span class="price-value">Rp 70.000</span></div></div>
-                <div class="price-card" data-name="LIYUE + CHASM + CHENYU" data-price="450000"><div class="price-header"><span class="price-title"><i class="fas fa-city"></i> LIYUE + CHASM + CHENYU</span><span class="price-value">Rp 450.000</span></div></div>
-                <div class="price-card" data-name="INAZUMA + ENKANOMIYA" data-price="450000"><div class="price-header"><span class="price-title"><i class="fas fa-torii-gate"></i> INAZUMA + ENKANOMIYA</span><span class="price-value">Rp 450.000</span></div></div>
-                <div class="price-card" data-name="SUMERU FOREST & DESERT" data-price="600000"><div class="price-header"><span class="price-title"><i class="fas fa-tree"></i> SUMERU FOREST & DESERT</span><span class="price-value">Rp 600.000</span></div></div>
-                <div class="price-card" data-name="FONTAINE + SEA BYGONE" data-price="550000"><div class="price-header"><span class="price-title"><i class="fas fa-water"></i> FONTAINE + SEA BYGONE</span><span class="price-value">Rp 550.000</span></div></div>
-                <div class="price-card" data-name="NATLAN + ANCIENT SACRED MOUNTAIN" data-price="550000"><div class="price-header"><span class="price-title"><i class="fas fa-fire"></i> NATLAN + ANCIENT SACRED MOUNTAIN</span><span class="price-value">Rp 550.000</span></div></div>
-                <div class="price-card" data-name="PROGRESS 1-90%" data-price="0"><div class="price-header"><span class="price-title"><i class="fas fa-percent"></i> PROGRESS 1-90%</span><span class="price-value">1% = Rp 1.000</span></div></div>
-                <div class="price-card" data-name="PROGRESS 91-100%" data-price="0"><div class="price-header"><span class="price-title"><i class="fas fa-percent"></i> PROGRESS 91-100%</span><span class="price-value">1% = Rp 2.000</span></div></div>
+                <div class="section-title">🌍 FULL MAP PACKAGES</div>
+                <div class="price-card" data-name="Mondstadt Full" data-price="150000"><div class="price-header"><span class="price-title"><i class="fas fa-map-marker-alt"></i> Mondstadt Full</span><span class="price-value">Rp 150.000</span></div></div>
+                <div class="price-card" data-name="Dragonspine" data-price="70000"><div class="price-header"><span class="price-title"><i class="fas fa-mountain"></i> Dragonspine</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Liyue + Chasm + Chenyu" data-price="450000"><div class="price-header"><span class="price-title"><i class="fas fa-city"></i> Liyue + Chasm + Chenyu</span><span class="price-value">Rp 450.000</span></div></div>
+                <div class="price-card" data-name="Inazuma + Enkanomiya" data-price="450000"><div class="price-header"><span class="price-title"><i class="fas fa-torii-gate"></i> Inazuma + Enkanomiya</span><span class="price-value">Rp 450.000</span></div></div>
+                <div class="price-card" data-name="Sumeru Forest & Desert" data-price="600000"><div class="price-header"><span class="price-title"><i class="fas fa-tree"></i> Sumeru Forest & Desert</span><span class="price-value">Rp 600.000</span></div></div>
+                <div class="price-card" data-name="Fontaine + Sea Bygone" data-price="550000"><div class="price-header"><span class="price-title"><i class="fas fa-water"></i> Fontaine + Sea Bygone</span><span class="price-value">Rp 550.000</span></div></div>
+                <div class="price-card" data-name="Natlan Full (saat ini)" data-price="350000"><div class="price-header"><span class="price-title"><i class="fas fa-fire"></i> Natlan Full (saat ini)</span><span class="price-value">Rp 350.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">📊 HITUNG PER 1%</div>
+                <div class="price-card" data-name="PROGRESS 1-90%" data-price="0"><div class="price-header"><span class="price-title"><i class="fas fa-percent"></i> Progress 1-90%</span><span class="price-value">1% = Rp 1.000</span></div></div>
+                <div class="price-card" data-name="PROGRESS 91-100%" data-price="0"><div class="price-header"><span class="price-title"><i class="fas fa-percent"></i> Progress 91-100%</span><span class="price-value">1% = Rp 2.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🗺️ JOKI MAP MONDSTADT</div>
+                <div class="price-card" data-name="Starfell Valley" data-price="50000"><div class="price-header"><span class="price-title"> Starfell Valley</span><span class="price-value">Rp 50.000</span></div></div>
+                <div class="price-card" data-name="Brightcrown Mountain" data-price="40000"><div class="price-header"><span class="price-title"> Brightcrown Mountain</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Windswail Highland" data-price="35000"><div class="price-header"><span class="price-title"> Windswail Highland</span><span class="price-value">Rp 35.000</span></div></div>
+                <div class="price-card" data-name="Windcry Hill" data-price="35000"><div class="price-header"><span class="price-title"> Windcry Hill</span><span class="price-value">Rp 35.000</span></div></div>
+                <div class="price-card" data-name="Mondstadt SEMUA" data-price="150000"><div class="price-header"><span class="price-title"> Mondstadt SEMUA</span><span class="price-value">Rp 150.000</span></div></div>
+                <div class="price-card" data-name="Mondo + Dragonspine" data-price="210000"><div class="price-header"><span class="price-title"> Mondo + Dragonspine</span><span class="price-value">Rp 210.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🏯 JOKI MAP LIYUE</div>
+                <div class="price-card" data-name="Minlin" data-price="50000"><div class="price-header"><span class="price-title"> Minlin</span><span class="price-value">Rp 50.000</span></div></div>
+                <div class="price-card" data-name="Bishui Plain" data-price="40000"><div class="price-header"><span class="price-title"> Bishui Plain</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Qiongji Estuary" data-price="40000"><div class="price-header"><span class="price-title"> Qiongji Estuary</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Lisha" data-price="40000"><div class="price-header"><span class="price-title"> Lisha</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Sea of Clouds" data-price="40000"><div class="price-header"><span class="price-title"> Sea of Clouds</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Liyue SEMUA" data-price="200000"><div class="price-header"><span class="price-title"> Liyue SEMUA</span><span class="price-value">Rp 200.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">⛰️ CHASM</div>
+                <div class="price-card" data-name="Chasm Underground" data-price="70000"><div class="price-header"><span class="price-title"> Chasm Underground</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Chasm SEMUA" data-price="100000"><div class="price-header"><span class="price-title"> Chasm SEMUA</span><span class="price-value">Rp 100.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🏞️ CHENYU VALE</div>
+                <div class="price-card" data-name="Chenyu Vale Upper Vale" data-price="75000"><div class="price-header"><span class="price-title"> Chenyu Vale Upper Vale</span><span class="price-value">Rp 75.000</span></div></div>
+                <div class="price-card" data-name="Chenyu Vale Southern Mountain" data-price="75000"><div class="price-header"><span class="price-title"> Chenyu Vale Southern Mountain</span><span class="price-value">Rp 75.000</span></div></div>
+                <div class="price-card" data-name="Mt Laixin" data-price="15000"><div class="price-header"><span class="price-title"> Mt.Laixin</span><span class="price-value">Rp 15.000</span></div></div>
+                <div class="price-card" data-name="Chenyu Vale SEMUA" data-price="150000"><div class="price-header"><span class="price-title"> Chenyu Vale SEMUA</span><span class="price-value">Rp 150.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">⛩️ JOKI MAP INAZUMA</div>
+                <div class="price-card" data-name="Narukami Island" data-price="70000"><div class="price-header"><span class="price-title"> Narukami Island</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Kannazuka" data-price="70000"><div class="price-header"><span class="price-title"> Kannazuka</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Yashiori Island" data-price="70000"><div class="price-header"><span class="price-title"> Yashiori Island</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Watatsumi Island" data-price="70000"><div class="price-header"><span class="price-title"> Watatsumi Island</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Seirai Island" data-price="70000"><div class="price-header"><span class="price-title"> Seirai Island</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Tsurumi Island" data-price="70000"><div class="price-header"><span class="price-title"> Tsurumi Island</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Enkanomiya" data-price="70000"><div class="price-header"><span class="price-title"> Enkanomiya</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Inazuma SEMUA" data-price="450000"><div class="price-header"><span class="price-title"> Inazuma SEMUA</span><span class="price-value">Rp 450.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🌳 JOKI MAP SUMERU FOREST</div>
+                <div class="price-card" data-name="Lokapala Jungle" data-price="60000"><div class="price-header"><span class="price-title"> Lokapala Jungle</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Avidya Forest" data-price="60000"><div class="price-header"><span class="price-title"> Avidya Forest</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Ardravi Valley" data-price="60000"><div class="price-header"><span class="price-title"> Ardravi Valley</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Vanarana" data-price="50000"><div class="price-header"><span class="price-title"> Vanarana</span><span class="price-value">Rp 50.000</span></div></div>
+                <div class="price-card" data-name="Vissudha Field" data-price="50000"><div class="price-header"><span class="price-title"> Vissudha Field</span><span class="price-value">Rp 50.000</span></div></div>
+                <div class="price-card" data-name="Lost Nursery" data-price="20000"><div class="price-header"><span class="price-title"> Lost Nursery</span><span class="price-value">Rp 20.000</span></div></div>
+                <div class="price-card" data-name="Ashavan Realm" data-price="70000"><div class="price-header"><span class="price-title"> Ashavan Realm</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Sumeru FOREST FULL" data-price="250000"><div class="price-header"><span class="price-title"> 🌲 FOREST FULL</span><span class="price-value">Rp 250.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🏜️ JOKI MAP SUMERU DESERT</div>
+                <div class="price-card" data-name="Land of Lower Setekh" data-price="70000"><div class="price-header"><span class="price-title"> Land of Lower Setekh</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Land of Upper Setekh" data-price="70000"><div class="price-header"><span class="price-title"> Land of Upper Setekh</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Hypostyle Desert" data-price="70000"><div class="price-header"><span class="price-title"> Hypostyle Desert</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Desert of Hadramaveth" data-price="80000"><div class="price-header"><span class="price-title"> Desert of Hadramaveth</span><span class="price-value">Rp 80.000</span></div></div>
+                <div class="price-card" data-name="Gavireh Lajavard" data-price="60000"><div class="price-header"><span class="price-title"> Gavireh Lajavard</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Realm of Farakhkert" data-price="60000"><div class="price-header"><span class="price-title"> Realm of Farakhkert</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Sumeru DESERT FULL" data-price="350000"><div class="price-header"><span class="price-title"> 🏜️ DESERT FULL</span><span class="price-value">Rp 350.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">💧 JOKI MAP FONTAINE</div>
+                <div class="price-card" data-name="Beryl Region" data-price="70000"><div class="price-header"><span class="price-title"> Beryl Region</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Belleau Region" data-price="40000"><div class="price-header"><span class="price-title"> Belleau Region</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Court of Fontaine Region" data-price="70000"><div class="price-header"><span class="price-title"> Court of Fontaine Region</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Liffey Region" data-price="70000"><div class="price-header"><span class="price-title"> Liffey Region</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Fontaine Research" data-price="70000"><div class="price-header"><span class="price-title"> Fontaine Research</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Erinnyes Forest" data-price="70000"><div class="price-header"><span class="price-title"> Erinnyes Forest</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Morte Region" data-price="70000"><div class="price-header"><span class="price-title"> Morte Region</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Nostoi Region" data-price="40000"><div class="price-header"><span class="price-title"> Nostoi Region</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Sea of Bygone Eras" data-price="70000"><div class="price-header"><span class="price-title"> Sea of Bygone Eras</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Fontaine FULL" data-price="550000"><div class="price-header"><span class="price-title"> 💧 FONTAINE FULL</span><span class="price-value">Rp 550.000</span></div></div>
+                
+                <div class="section-title" style="margin-top: 15px;">🔥 JOKI MAP NATLAN</div>
+                <div class="price-card" data-name="Tequemecan Valley" data-price="60000"><div class="price-header"><span class="price-title"> Tequemecan Valley</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Coatepec Mountain" data-price="60000"><div class="price-header"><span class="price-title"> Coatepec Mountain</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Basin of Unnumbered Flames" data-price="60000"><div class="price-header"><span class="price-title"> Basin of Unnumbered Flames</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Toyac Springs" data-price="60000"><div class="price-header"><span class="price-title"> Toyac Springs</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Tezcatepetonco Range" data-price="60000"><div class="price-header"><span class="price-title"> Tezcatepetonco Range</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Quahuacan Cliff" data-price="60000"><div class="price-header"><span class="price-title"> Quahuacan Cliff</span><span class="price-value">Rp 60.000</span></div></div>
+                <div class="price-card" data-name="Ochkanatlan" data-price="70000"><div class="price-header"><span class="price-title"> Ochkanatlan</span><span class="price-value">Rp 70.000</span></div></div>
+                <div class="price-card" data-name="Natlan FULL" data-price="350000"><div class="price-header"><span class="price-title"> NATLAN FULL</span><span class="price-value">Rp 350.000</span></div></div>
             </div>
             
+            <!-- PAGE CHARACTER -->
             <div id="page-character" class="page">
-                <div class="price-card" data-name="LEVEL 1→20" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 1 → 20</span><span class="price-value">Rp 7.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 20→40" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 20 → 40</span><span class="price-value">Rp 7.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 40→50" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 40 → 50</span><span class="price-value">Rp 7.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 50→60" data-price="12000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 50 → 60</span><span class="price-value">Rp 12.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 60→70" data-price="12000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 60 → 70</span><span class="price-value">Rp 12.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 70→80" data-price="18000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 70 → 80</span><span class="price-value">Rp 18.000</span></div></div>
-                <div class="price-card" data-name="LEVEL 80→90" data-price="25000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> LEVEL 80 → 90</span><span class="price-value">Rp 25.000</span></div></div>
-                <div class="price-card" data-name="PAKET ASCEND 1→90" data-price="80000"><div class="price-header"><span class="price-title"><i class="fas fa-crown"></i> PAKET ASCEND 1 → 90</span><span class="price-value">Rp 80.000</span></div></div>
+                <div class="section-title">⭐ CHARACTER LEVELING</div>
+                <div class="price-card" data-name="LEVEL 1→20" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 1 → 20</span><span class="price-value">Rp 7.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 20→40" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 20 → 40</span><span class="price-value">Rp 7.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 40→50" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 40 → 50</span><span class="price-value">Rp 7.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 50→60" data-price="12000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 50 → 60</span><span class="price-value">Rp 12.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 60→70" data-price="12000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 60 → 70</span><span class="price-value">Rp 12.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 70→80" data-price="18000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 70 → 80</span><span class="price-value">Rp 18.000</span></div></div>
+                <div class="price-card" data-name="LEVEL 80→90" data-price="25000"><div class="price-header"><span class="price-title"><i class="fas fa-star"></i> Level 80 → 90</span><span class="price-value">Rp 25.000</span></div></div>
+                <div class="price-card" data-name="PAKET ASCEND 1→90" data-price="80000"><div class="price-header"><span class="price-title"><i class="fas fa-crown"></i> Paket Ascend 1 → 90</span><span class="price-value">Rp 80.000</span></div></div>
             </div>
             
-            <!-- PAGE ULASAN & RATING -->
+            <!-- PAGE WEAPON -->
+            <div id="page-weapon" class="page">
+                <div class="section-title">⚔️ WEAPON LEVELING</div>
+                <div class="price-card" data-name="WEAPON level 1→20" data-price="5000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 1 → 20</span><span class="price-value">Rp 5.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 20→40" data-price="5000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 20 → 40</span><span class="price-value">Rp 5.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 40→50" data-price="5000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 40 → 50</span><span class="price-value">Rp 5.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 50→60" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 50 → 60</span><span class="price-value">Rp 7.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 60→70" data-price="7000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 60 → 70</span><span class="price-value">Rp 7.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 70→80" data-price="16000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 70 → 80</span><span class="price-value">Rp 16.000</span></div></div>
+                <div class="price-card" data-name="WEAPON level 80→90" data-price="20000"><div class="price-header"><span class="price-title"><i class="fas fa-sword"></i> Weapon Level 80 → 90</span><span class="price-value">Rp 20.000</span></div></div>
+                <div class="price-card" data-name="PAKET WEAPON ASCEND 1→90" data-price="60000"><div class="price-header"><span class="price-title"><i class="fas fa-crown"></i> Paket Weapon Ascend 1→90</span><span class="price-value">Rp 60.000</span></div></div>
+            </div>
+            
+            <!-- PAGE TALENT -->
+            <div id="page-talent" class="page">
+                <div class="section-title">📚 TALENT LEVELING</div>
+                <div class="price-card" data-name="TALENT level 1→2" data-price="2000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 1 → 2</span><span class="price-value">Rp 2.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 2→3" data-price="4000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 2 → 3</span><span class="price-value">Rp 4.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 3→4" data-price="6000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 3 → 4</span><span class="price-value">Rp 6.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 4→5" data-price="8000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 4 → 5</span><span class="price-value">Rp 8.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 5→6" data-price="10000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 5 → 6</span><span class="price-value">Rp 10.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 6→7" data-price="12000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 6 → 7</span><span class="price-value">Rp 12.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 7→8" data-price="14000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 7 → 8</span><span class="price-value">Rp 14.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 8→9" data-price="16000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 8 → 9</span><span class="price-value">Rp 16.000</span></div></div>
+                <div class="price-card" data-name="TALENT level 9→10" data-price="18000"><div class="price-header"><span class="price-title"><i class="fas fa-book"></i> Talent Level 9 → 10</span><span class="price-value">Rp 18.000</span></div></div>
+                <div class="price-card" data-name="PAKET TALENT 1→10" data-price="85000"><div class="price-header"><span class="price-title"><i class="fas fa-crown"></i> Paket Talent 1 → 10</span><span class="price-value">Rp 85.000</span></div></div>
+                <div class="price-card" data-name="PAKET TIGA CROWN" data-price="250000"><div class="price-header"><span class="price-title"><i class="fas fa-crown"></i> Paket Tiga Crown</span><span class="price-value">Rp 250.000</span></div></div>
+            </div>
+            
+            <!-- PAGE QUEST NATLAN -->
+            <div id="page-quest" class="page">
+                <div class="section-title">📜 QUEST NATLAN</div>
+                <div class="price-card" data-name="Antara janji dan lupa" data-price="35000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Antara janji dan lupa</span><span class="price-value">Rp 35.000</span></div></div>
+                <div class="price-card" data-name="Bayangan gunung" data-price="40000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Bayangan gunung</span><span class="price-value">Rp 40.000</span></div></div>
+                <div class="price-card" data-name="Kisah mencari mimpi di tengah api" data-price="35000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Kisah mencari mimpi di tengah api</span><span class="price-value">Rp 35.000</span></div></div>
+                <div class="price-card" data-name="Memancing masalah" data-price="15000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Memancing masalah</span><span class="price-value">Rp 15.000</span></div></div>
+                <div class="price-card" data-name="Kembalikan malam pada sang malam" data-price="15000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Kembalikan malam pada sang malam</span><span class="price-value">Rp 15.000</span></div></div>
+                <div class="price-card" data-name="Kota yang terkubur oleh abu" data-price="50000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Kota yang terkubur oleh abu</span><span class="price-value">Rp 50.000</span></div></div>
+                <div class="price-card" data-name="Misteri bulu mengapung di tepi pantai" data-price="15000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Misteri bulu mengapung di tepi pantai</span><span class="price-value">Rp 15.000</span></div></div>
+                <div class="price-card" data-name="Buka jantungmu untuk ku" data-price="15000"><div class="price-header"><span class="price-title"><i class="fas fa-scroll"></i> Buka jantungmu untuk ku</span><span class="price-value">Rp 15.000</span></div></div>
+                <div class="info-card" style="margin-top: 15px;"><i class="fas fa-info-circle"></i> Keterangan: Ini adalah beberapa quest yang harus diselesaikan untuk membuka beberapa tempat tersembunyi yang ada di natlan agar bisa dieksplor nantinya</div>
+            </div>
+            
+            <!-- PAGE REVIEWS -->
             <div id="page-reviews" class="page">
                 <div class="rating-summary" id="ratingSummary">
                     <div class="rating-stars-big" id="avgStarsDisplay">★★★★★</div>
@@ -1145,8 +1340,9 @@
                 <div class="review-list" id="reviewList"><div class="review-loading"><i class="fas fa-spinner fa-pulse"></i> Memuat ulasan...</div></div>
             </div>
             
+            <!-- PAGE INFO -->
             <div id="page-info" class="page">
-                <div class="info-card"><h3><i class="fas fa-info-circle"></i> Tentang Kami</h3><p>Bizzy Impact Official adalah penyedia jasa joki Genshin Impact terpercaya. Kami melayani explore region, leveling character, dan berbagai kebutuhan Genshin Impact Anda.</p></div>
+                <div class="info-card"><h3><i class="fas fa-info-circle"></i> Tentang Kami</h3><p>Bizzy Impact Official adalah penyedia jasa joki Genshin Impact terpercaya. Kami melayani explore region, leveling character, weapon, talent, dan berbagai kebutuhan Genshin Impact Anda.</p></div>
                 <div class="info-card" style="margin-top: 15px;"><h3><i class="fas fa-check-circle"></i> Keunggulan Kami</h3><p>✅ Proses Cepat & Aman<br>✅ Harga Terjangkau<br>✅ Bisa Request Custom<br>✅ Support 24 Jam</p></div>
                 <div class="info-card" style="margin-top: 15px;"><h3><i class="fab fa-telegram"></i> Bot Telegram</h3><p>Gunakan bot kami untuk cek antrian, data akun, dan laporan:</p>
                 <div class="bot-command-list" style="justify-content: center;">
@@ -1154,6 +1350,8 @@
                     <div class="bot-cmd" onclick="copyCommand('/cek_antrian')">/cek_antrian</div>
                     <div class="bot-cmd" onclick="copyCommand('/data_akun')">/data_akun</div>
                     <div class="bot-cmd" onclick="copyCommand('/laporan')">/laporan</div>
+                    <div class="bot-cmd" onclick="copyCommand('/rating')">/rating</div>
+                    <div class="bot-cmd" onclick="copyCommand('/data_joki')">/data_joki</div>
                 </div>
                 <p style="margin-top: 10px; font-size: 0.7rem;">@BizzyImpactBot</p>
                 </div>
@@ -1170,16 +1368,24 @@
             <div class="footer"><p>© 2026 Bizzy Impact Official | All Rights Reserved</p><p>Harga dapat berubah sewaktu-waktu</p></div>
         </div>
         
+        <!-- BOTTOM NAV DENGAN SWITCH - 4 TOMBOL + TOMBOL SWITCH -->
         <div class="bottom-nav" id="bottomNav" style="display: none;">
-            <div class="nav-item active" id="nav-explore"><i class="fas fa-map"></i><span>EXPLORE</span></div>
-            <div class="nav-item" id="nav-character"><i class="fas fa-user-friends"></i><span>CHARACTER</span></div>
-            <div class="nav-item" id="nav-reviews"><i class="fas fa-star"></i><span>ULASAN</span></div>
-            <div class="nav-item" id="nav-info"><i class="fas fa-info-circle"></i><span>INFO</span></div>
-            <div class="nav-item" id="nav-music"><i class="fas fa-music"></i><span>MUSIK</span></div>
+            <div class="nav-group" id="navGroup1">
+                <div class="nav-item active" data-nav="explore"><i class="fas fa-map"></i><span>EXPLORE</span></div>
+                <div class="nav-item" data-nav="character"><i class="fas fa-user-friends"></i><span>CHAR</span></div>
+                <div class="nav-item" data-nav="weapon"><i class="fas fa-gun"></i><span>WEAPON</span></div>
+                <div class="nav-item" data-nav="talent"><i class="fas fa-book"></i><span>TALENT</span></div>
+            </div>
+            <button class="nav-switch-btn" id="navSwitchBtn"><i class="fas fa-exchange-alt"></i> <span id="switchText">>></span></button>
+            <div class="nav-group" id="navGroup2" style="display: none;">
+                <div class="nav-item" data-nav="quest"><i class="fas fa-scroll"></i><span>QUEST</span></div>
+                <div class="nav-item" data-nav="reviews"><i class="fas fa-star"></i><span>ULASAN</span></div>
+                <div class="nav-item" data-nav="info"><i class="fas fa-info-circle"></i><span>INFO</span></div>
+                <div class="nav-item" data-nav="music"><i class="fas fa-music"></i><span>MUSIK</span></div>
+            </div>
         </div>
     </div>
 
-    <!-- MUSIC PLAYER MODAL -->
     <div id="musicModal" class="music-modal">
         <div class="music-card">
             <h3><i class="fas fa-music"></i> Music Player</h3>
@@ -1192,7 +1398,7 @@
                 <button class="control-btn" id="stopMusicBtn" style="width: 35px; height: 35px;"><i class="fas fa-stop"></i></button>
             </div>
             <div class="music-search-box">
-                <input type="text" id="searchSongInput" placeholder="Cari lagu... contoh: dj menungso ora toto">
+                <input type="text" id="searchSongInput" placeholder="Cari lagu...">
                 <button id="searchSongBtn"><i class="fas fa-search"></i> Cari</button>
             </div>
             <div id="searchResults" style="max-height: 300px; overflow-y: auto;">
@@ -1230,18 +1436,40 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // ==================== BOT INTEGRATION ====================
         const BOT_USERNAME = "BizzyImpactBot";
         const BOT_LINK = "https://t.me/BizzyImpactBot";
+        
+        // LOADING SCREEN SCRIPT
+        const bee = document.getElementById('bee');
+        if (bee) {
+            setTimeout(() => bee.classList.add('ready'), 1000);
+        }
+        
+        // HIDE LOADING SCREEN AFTER ANIMATION
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'block';
+                    checkWebStatus();
+                }, 800);
+            }
+        }, 13000);
         
         function copyCommand(command) {
             navigator.clipboard.writeText(command);
             showToast(`✅ Command ${command} disalin! Gunakan di @${BOT_USERNAME}`);
         }
         
+        function openBot() {
+            window.open(BOT_LINK, '_blank');
+        }
+        
         function openBotCommands() {
             window.open(BOT_LINK, '_blank');
-            showToast(`📱 Buka @${BOT_USERNAME} di Telegram untuk menggunakan command`);
+            showToast(`📱 Buka @${BOT_USERNAME} di Telegram`);
         }
         
         function showBotNotification(message) {
@@ -1254,7 +1482,6 @@
             setTimeout(() => notif.remove(), 4000);
         }
         
-        // Cek status bot via Firebase
         function checkBotStatus() {
             const botStatusRef = ref(db, 'bizzy_settings/bot_status');
             onValue(botStatusRef, (snapshot) => {
@@ -1271,26 +1498,7 @@
             });
         }
         
-        // Kirim notifikasi ke bot saat order baru
-        async function notifyBotNewOrder(orderData) {
-            try {
-                // Simpan ke Firebase untuk notifikasi bot
-                await push(ref(db, 'bizzy_bot_notifications'), {
-                    type: 'new_order',
-                    orderId: orderData.orderId,
-                    username: orderData.username,
-                    product: orderData.productName,
-                    amount: orderData.productPrice,
-                    timestamp: Date.now(),
-                    sent: false
-                });
-                console.log('📢 Notifikasi order dikirim ke bot');
-            } catch(e) {
-                console.error('Gagal kirim notifikasi ke bot:', e);
-            }
-        }
-        
-        // ==================== MUSIC PLAYER GLOBAL ====================
+        // MUSIC PLAYER
         const audioElement = document.getElementById('backgroundAudio');
         let currentTrack = null;
         let isPlaying = false;
@@ -1325,12 +1533,11 @@
                         playMusic(title, url, thumb, user);
                     });
                 } else {
-                    resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;">Lagu tidak ditemukan, coba judul lain</div>';
+                    resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;">Lagu tidak ditemukan</div>';
                 }
             } catch (error) {
                 loadingDiv.style.display = 'none';
-                resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;">Error mencari lagu, coba lagi</div>';
-                console.error(error);
+                resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;">Error mencari lagu</div>';
             }
         }
         
@@ -1338,7 +1545,7 @@
             currentTrack = { title, url, thumbnail, user };
             audioElement.src = url;
             audioElement.load();
-            audioElement.play().catch(e => console.log('Auto-play mungkin diblokir browser'));
+            audioElement.play().catch(e => console.log);
             isPlaying = true;
             document.getElementById('nowPlayingSection').style.display = 'flex';
             document.getElementById('musicControls').style.display = 'flex';
@@ -1354,7 +1561,6 @@
             if (!currentTrack) return;
             if (isPlaying) { audioElement.pause(); document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-play"></i>'; isPlaying = false; }
             else { audioElement.play(); document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>'; isPlaying = true; }
-            if (currentTrack) localStorage.setItem('bizzy_music_track', JSON.stringify({ ...currentTrack, currentTime: audioElement.currentTime, isPlaying }));
         }
         
         function stopMusic() {
@@ -1368,7 +1574,7 @@
             localStorage.removeItem('bizzy_music_track');
         }
         
-        function setVolume(value) { const vol = Math.min(1, Math.max(0, value / 100)); audioElement.volume = vol; localStorage.setItem('bizzy_music_volume', vol); document.getElementById('volumeSlider').value = value; }
+        function setVolume(value) { const vol = Math.min(1, Math.max(0, value / 100)); audioElement.volume = vol; document.getElementById('volumeSlider').value = value; }
         function volumeUp() { let newVol = Math.min(100, (audioElement.volume * 100) + 10); setVolume(newVol); }
         function volumeDown() { let newVol = Math.max(0, (audioElement.volume * 100) - 10); setVolume(newVol); }
         
@@ -1384,47 +1590,28 @@
                         audioElement.src = track.url;
                         audioElement.currentTime = track.currentTime || 0;
                         if (track.isPlaying) audioElement.play().catch(e => console.log);
-                        document.getElementById('nowPlayingThumb').src = track.thumbnail || 'https://via.placeholder.com/50x50?text=Music';
+                        document.getElementById('nowPlayingThumb').src = track.thumbnail;
                         document.getElementById('nowPlayingTitle').innerHTML = escapeHtml(track.title);
                         document.getElementById('nowPlayingUser').innerHTML = escapeHtml(track.user || 'Unknown');
                         document.getElementById('nowPlayingSection').style.display = 'flex';
                         document.getElementById('musicControls').style.display = 'flex';
                         document.getElementById('volumeSliderDiv').style.display = 'block';
-                        document.getElementById('playPauseBtn').innerHTML = track.isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
                     }
                 } catch(e) {}
             }
         }
         
-        setInterval(() => {
-            if (currentTrack && audioElement.src) {
-                localStorage.setItem('bizzy_music_track', JSON.stringify({ ...currentTrack, currentTime: audioElement.currentTime, isPlaying: !audioElement.paused }));
-            }
-        }, 3000);
-        
-        // ==================== MODE THEME ====================
+        // THEME MODES
         const LIGHT_MODE_CSS = `
             body { background: linear-gradient(135deg, #f0f4ff, #e6edfc); color: #1a2a6c; }
             .overlay { background: rgba(255,255,255,0.3); }
-            .loading-screen { background: #ffffff; }
-            .brand-main, .brand-sub, .text-container { color: #1a3c8f; }
-            .bee-icon { background-color: #1e88e5; border: 3px solid #0d47a1; }
-            .bee-icon::before { background: #0d47a1; box-shadow: 0 25px 0 #0d47a1; }
-            .eye { background: #0d47a1; }
-            .wing { background: rgba(255,255,255,0.7); border: 2px solid #1565c0; }
-            .loading-text { color: #1e88e5; }
-            .logo-custom { background: linear-gradient(135deg, #1e88e5, #0d47a1, #42a5f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-            .tagline { color: #2c3e8f; opacity: 0.9; }
-            .video-card { background: transparent !important; border: none !important; }
+            .web-closed-card { background: rgba(255,255,255,0.95); color: #0d47a1; border: 1px solid #1e88e5; }
             .welcome-card { background: rgba(255,255,255,0.8); border: 1px solid #bbdefb; color: #1a2a6c; }
-            .welcome-text i, .queue-badge { color: #1e88e5; }
             .queue-badge { background: #e3f2fd; color: #0d47a1; }
             .auth-card { background: rgba(255,255,255,0.9); border: 1px solid #90caf9; }
             .auth-card h2 { color: #0d47a1; }
             .auth-input { background: rgba(0,0,0,0.03); border: 1px solid #bbdefb; color: #1a2a6c; }
             .auth-btn { background: linear-gradient(95deg, #1e88e5, #0d47a1); color: white; }
-            .auth-switch { color: #2c3e8f; }
-            .auth-switch span { color: #1e88e5; }
             .category-btn { background: rgba(255,255,255,0.7); color: #0d47a1; }
             .category-btn.active { background: linear-gradient(95deg, #1e88e5, #0d47a1); color: white; }
             .price-card { background: rgba(255,255,255,0.8); border: 1px solid #bbdefb; color: #1a2a6c; }
@@ -1433,10 +1620,11 @@
             .btn-order { background: linear-gradient(95deg, #1e88e5, #0d47a1); color: white; }
             .contact-card { background: rgba(255,255,255,0.7); border: 1px solid #bbdefb; }
             .contact-card a { color: #0d47a1; }
-            .footer { color: #2c3e8f; }
             .bottom-nav { background: rgba(255,255,255,0.9); border: 1px solid #bbdefb; }
             .nav-item { color: #1a2a6c; }
             .nav-item.active { background: #1e88e5; color: white; }
+            .nav-switch-btn { background: rgba(0,0,0,0.08); color: #0d47a1; }
+            .nav-switch-btn:hover { background: #1e88e5; color: white; }
             .info-card { background: rgba(255,255,255,0.7); color: #1a2a6c; }
             .info-card h3 { color: #0d47a1; }
             .toast { background: #ffffff; border-left: 4px solid #1e88e5; color: #0d47a1; }
@@ -1450,43 +1638,27 @@
             .dot { background: rgba(0,0,0,0.2); }
             .dot.active { background: #1e88e5; }
             .slider-btn { background: rgba(255,255,255,0.7); color: #0d47a1; }
-            .web-closed-card { background: rgba(255,255,255,0.95); color: #0d47a1; border: 1px solid #1e88e5; }
             .mode-selector { background: rgba(0,0,0,0.05); }
             .mode-btn { background: rgba(0,0,0,0.05); color: #0d47a1; }
             .mode-btn.active { background: #1e88e5; color: white; }
             .music-card { background: rgba(255,255,255,0.95) !important; color: #1a2a6c !important; }
-            .flying-bee .bee-body { background: #1e88e5; border-color: #0d47a1; }
-            .flying-bee .bee-body::before { background: #0d47a1; box-shadow: 0 12px 0 #0d47a1; }
-            .flying-bee .bee-eye { background: #0d47a1; }
-            .flying-bee .bee-stinger { background: #0d47a1; }
-            .flying-bee .bee-wing { background: rgba(30,136,229,0.3); border-color: #0d47a1; }
             .bot-status-bar { background: rgba(255,255,255,0.7); color: #0d47a1; }
             .bot-cmd { background: #e3f2fd; color: #0d47a1; }
             .bot-cmd:hover { background: #1e88e5; color: white; }
+            .section-title { border-bottom-color: #1e88e5; }
+            .operational-hours { background: rgba(255,255,255,0.8); color: #0d47a1; }
         `;
         
         const DARK_MODE_CSS = `
             body { background: linear-gradient(135deg, #0a0a0a, #1a1a1a); color: #e0e0e0; }
             .overlay { background: rgba(0,0,0,0.85); }
-            .loading-screen { background: #0a0a0a; }
-            .brand-main, .brand-sub, .text-container { color: #ffd700; }
-            .bee-icon { background-color: #ffd700; border: 3px solid #ff9900; }
-            .bee-icon::before { background: #ff9900; box-shadow: 0 25px 0 #ff9900; }
-            .eye { background: #ff9900; }
-            .wing { background: rgba(255,255,255,0.2); border: 2px solid #ffd700; }
-            .loading-text { color: #ffd700; }
-            .logo-custom { background: linear-gradient(135deg, #ffd700, #ff9900, #ff6600); -webkit-background-clip: text; background-clip: text; color: transparent; }
-            .tagline { color: #ffd700; opacity: 0.8; }
-            .video-card { background: transparent !important; border: none !important; }
+            .web-closed-card { background: rgba(20,20,40,0.95); border: 1px solid #ffd700; color: #ffd700; }
             .welcome-card { background: rgba(0,0,0,0.7); border: 1px solid rgba(255,215,0,0.3); color: #e0e0e0; }
-            .welcome-text i, .queue-badge { color: #ffd700; }
             .queue-badge { background: #ff6600; color: white; }
             .auth-card { background: rgba(20,20,40,0.95); border: 1px solid rgba(255,215,0,0.3); }
             .auth-card h2 { color: #ffd700; }
             .auth-input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: white; }
             .auth-btn { background: linear-gradient(95deg, #ffd700, #ff9900); color: #1a1a1a; }
-            .auth-switch { color: rgba(255,255,255,0.6); }
-            .auth-switch span { color: #ffd700; }
             .category-btn { background: rgba(0,0,0,0.6); color: #ffd700; }
             .category-btn.active { background: linear-gradient(95deg, #ffd700, #ff9900); color: #1a1a1a; }
             .price-card { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,215,0,0.3); color: #e0e0e0; }
@@ -1495,10 +1667,11 @@
             .btn-order { background: linear-gradient(95deg, #25D366, #128C7E); color: white; }
             .contact-card { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); }
             .contact-card a { color: #ffd700; }
-            .footer { color: rgba(255,255,255,0.5); }
             .bottom-nav { background: rgba(0,0,0,0.9); border: 1px solid rgba(255,215,0,0.3); }
             .nav-item { color: #e0e0e0; }
             .nav-item.active { background: #ffd700; color: #1a1a1a; }
+            .nav-switch-btn { background: rgba(255,255,255,0.1); color: #ffd700; }
+            .nav-switch-btn:hover { background: #ffd700; color: #1a1a1a; }
             .info-card { background: rgba(0,0,0,0.5); color: #e0e0e0; }
             .info-card h3 { color: #ffd700; }
             .toast { background: #1a1a1a; border-left: 4px solid #ffd700; color: #ffd700; }
@@ -1512,19 +1685,15 @@
             .dot { background: rgba(255,255,255,0.3); }
             .dot.active { background: #ffd700; }
             .slider-btn { background: rgba(0,0,0,0.7); color: #ffd700; }
-            .web-closed-card { background: rgba(20,20,40,0.95); border: 1px solid #ffd700; color: #ffd700; }
             .mode-selector { background: rgba(0,0,0,0.3); }
             .mode-btn { background: rgba(255,255,255,0.1); color: #ffd700; }
             .mode-btn.active { background: #ffd700; color: #1a1a1a; }
             .music-card { background: rgba(30,30,50,0.95) !important; color: #e0e0e0 !important; }
-            .flying-bee .bee-body { background: #ffd700; border-color: #ff9900; }
-            .flying-bee .bee-body::before { background: #ff9900; box-shadow: 0 12px 0 #ff9900; }
-            .flying-bee .bee-eye { background: #ff9900; }
-            .flying-bee .bee-stinger { background: #ff9900; }
-            .flying-bee .bee-wing { background: rgba(255,215,0,0.3); border-color: #ffd700; }
             .bot-status-bar { background: rgba(0,0,0,0.5); color: #ffd700; }
             .bot-cmd { background: rgba(255,215,0,0.15); color: #ffd700; }
             .bot-cmd:hover { background: #ffd700; color: #1a1a1a; }
+            .section-title { border-bottom-color: #ffd700; }
+            .operational-hours { background: rgba(0,0,0,0.5); color: #ffd700; }
         `;
         
         let currentMode = localStorage.getItem('bizzy_theme_mode') || 'light';
@@ -1540,7 +1709,7 @@
             localStorage.setItem('bizzy_theme_mode', mode);
         }
         
-        // ==================== REVIEW & RATING FUNCTIONS ====================
+        // REVIEW & RATING
         let selectedRating = 0;
         
         function initStarRating() {
@@ -1562,7 +1731,7 @@
                 const container = document.getElementById('reviewList');
                 let totalRating = 0, reviewCount = 0;
                 if (!reviews) {
-                    container.innerHTML = '<div class="review-loading"><i class="fas fa-comment"></i> Belum ada ulasan. Jadi yang pertama!</div>';
+                    container.innerHTML = '<div class="review-loading"><i class="fas fa-comment"></i> Belum ada ulasan.</div>';
                     document.getElementById('totalReviews').innerText = '0 ulasan';
                     document.getElementById('avgRating').innerText = '0.0';
                     document.getElementById('avgStarsDisplay').innerHTML = '☆☆☆☆☆';
@@ -1587,7 +1756,7 @@
         }
         
         async function submitReview() {
-            if (!currentUserId || !currentUsername) { showToast("Silakan login terlebih dahulu untuk memberi ulasan!"); return; }
+            if (!currentUserId || !currentUsername) { showToast("Silakan login terlebih dahulu!"); return; }
             if (selectedRating === 0) { showToast("Pilih rating bintang terlebih dahulu!"); return; }
             const text = document.getElementById('reviewText').value.trim();
             if (!text) { showToast("Tulis ulasan Anda terlebih dahulu!"); return; }
@@ -1598,12 +1767,10 @@
             document.getElementById('reviewPackage').value = '';
             selectedRating = 0;
             document.querySelectorAll('.star-input').forEach(s => s.classList.remove('active'));
-            
-            // Notifikasi ke bot
-            showBotNotification("⭐ Ulasan baru! Cek di @BizzyImpactBot");
+            showBotNotification("⭐ Ulasan baru! Terima kasih!");
         }
         
-        // ==================== VARIABLES ====================
+        // MAIN VARIABLES
         let currentUserId = null;
         let currentUsername = null;
         let selectedProduct = null;
@@ -1611,6 +1778,32 @@
         let slides = [];
         let currentSlide = 0;
         let slideInterval;
+        
+        // BOTTOM NAV SWITCH
+        let navGroupActive = 1;
+        
+        function setupNavSwitch() {
+            const switchBtn = document.getElementById('navSwitchBtn');
+            const group1 = document.getElementById('navGroup1');
+            const group2 = document.getElementById('navGroup2');
+            const switchText = document.getElementById('switchText');
+            
+            if (!switchBtn) return;
+            
+            switchBtn.addEventListener('click', () => {
+                if (navGroupActive === 1) {
+                    group1.style.display = 'none';
+                    group2.style.display = 'flex';
+                    navGroupActive = 2;
+                    switchText.innerHTML = '<<';
+                } else {
+                    group1.style.display = 'flex';
+                    group2.style.display = 'none';
+                    navGroupActive = 1;
+                    switchText.innerHTML = '>>';
+                }
+            });
+        }
         
         function loadVideoUrl() {
             const videoRef = ref(db, 'bizzy_settings/video_url');
@@ -1624,15 +1817,6 @@
                 }
             });
         }
-        
-        setTimeout(() => {
-            document.getElementById('loadingScreen').classList.add('fade-out');
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                checkWebStatus();
-            }, 500);
-        }, 2000);
         
         async function checkWebStatus() {
             const statusRef = ref(db, 'bizzy_settings/web_status');
@@ -1788,9 +1972,7 @@
             localStorage.setItem('bizzy_username', username);
             showToast("✅ Pendaftaran berhasil!");
             showLogin();
-            
-            // Notifikasi ke bot
-            showBotNotification("🎉 User baru terdaftar! Cek di @BizzyImpactBot");
+            showBotNotification("🎉 Pendaftaran berhasil! Silakan login.");
         }
         
         async function handleLogin() {
@@ -1822,7 +2004,7 @@
             document.getElementById('welcomeUsername').innerText = username;
             loadMyQueue();
             showToast("✅ Login berhasil!");
-            showBotNotification(`👋 Selamat datang ${username}! Gunakan bot @${BOT_USERNAME} untuk cek antrian`);
+            showBotNotification(`👋 Selamat datang ${username}!`);
         }
         
         async function handleLogout() {
@@ -1844,24 +2026,61 @@
         function openMyOrders() { window.location.href = 'my-orders.html'; }
         function openCustomerService() { window.location.href = 'cs.html'; }
         function openAdmin() { window.location.href = 'admin.html'; }
-        function showPrivacy() { alert("🔒 KEBIJAKAN PRIVASI\n\nWeb Bizzy Impact Official aman dan terpercaya. Data Anda tidak akan disalahgunakan.\n\n✅ Data tidak dibagikan ke pihak ketiga\n✅ Transaksi aman dengan QRIS\n✅ Support 24 jam"); }
-        function showReadme() { alert("📢 README / INFO\n\nBizzy Impact Official - Jasa Joki Genshin Impact\n\n✅ Explore Region 100%\n✅ Leveling Character 1-90\n✅ Proses Cepat & Aman\n✅ Harga Terjangkau\n\n🤖 Bot Telegram: @BizzyImpactBot\nCommand: /start, /cek_antrian, /data_akun, /laporan\n\nCara Order:\n1. Pilih paket\n2. Isi data login game\n3. Upload bukti transfer\n\nTerima kasih! 🙏"); }
+        function showPrivacy() { alert("🔒 KEBIJAKAN PRIVASI\n\nData Anda aman dan tidak akan disalahgunakan."); }
+        function showReadme() { alert("📢 INFO\n\nBizzy Impact Official - Jasa Joki Genshin Impact\n\n✅ Explore Region 100%\n✅ Leveling Character/Weapon/Talent\n✅ Proses Cepat & Aman\n✅ Harga Terjangkau\n\n🤖 Bot Telegram: @BizzyImpactBot\nCommand: /start, /cek_antrian, /data_akun, /laporan\n\nTerima kasih! 🙏"); }
         
         function initCategoryNav() {
             const btns = document.querySelectorAll('.category-btn');
-            const pages = { explore: document.getElementById('page-explore'), character: document.getElementById('page-character'), reviews: document.getElementById('page-reviews'), info: document.getElementById('page-info') };
-            const navItems = { explore: document.getElementById('nav-explore'), character: document.getElementById('nav-character'), reviews: document.getElementById('nav-reviews'), info: document.getElementById('nav-info') };
+            const pages = { 
+                explore: document.getElementById('page-explore'), 
+                character: document.getElementById('page-character'),
+                weapon: document.getElementById('page-weapon'),
+                talent: document.getElementById('page-talent'),
+                quest: document.getElementById('page-quest'),
+                reviews: document.getElementById('page-reviews'), 
+                info: document.getElementById('page-info') 
+            };
+            
             function switchCategory(category) {
-                Object.values(pages).forEach(p => p.classList.remove('active'));
-                Object.values(navItems).forEach(n => n.classList.remove('active'));
+                Object.values(pages).forEach(p => p?.classList.remove('active'));
                 btns.forEach(b => b.classList.remove('active'));
-                if (category === 'explore') { pages.explore.classList.add('active'); btns[0].classList.add('active'); navItems.explore.classList.add('active'); }
-                else if (category === 'character') { pages.character.classList.add('active'); btns[1].classList.add('active'); navItems.character.classList.add('active'); }
-                else if (category === 'reviews') { pages.reviews.classList.add('active'); btns[2].classList.add('active'); navItems.reviews.classList.add('active'); }
-                else if (category === 'info') { pages.info.classList.add('active'); btns[3].classList.add('active'); navItems.info.classList.add('active'); }
+                if (category === 'explore') { pages.explore?.classList.add('active'); btns[0]?.classList.add('active'); }
+                else if (category === 'character') { pages.character?.classList.add('active'); btns[1]?.classList.add('active'); }
+                else if (category === 'weapon') { pages.weapon?.classList.add('active'); btns[2]?.classList.add('active'); }
+                else if (category === 'talent') { pages.talent?.classList.add('active'); btns[3]?.classList.add('active'); }
+                else if (category === 'quest') { pages.quest?.classList.add('active'); btns[4]?.classList.add('active'); }
+                else if (category === 'reviews') { pages.reviews?.classList.add('active'); btns[5]?.classList.add('active'); }
+                else if (category === 'info') { pages.info?.classList.add('active'); btns[6]?.classList.add('active'); }
             }
-            btns.forEach((btn) => { btn.addEventListener('click', () => { const cat = btn.getAttribute('data-cat'); switchCategory(cat); }); });
-            if (navItems.explore) { navItems.explore.addEventListener('click', () => switchCategory('explore')); navItems.character.addEventListener('click', () => switchCategory('character')); navItems.reviews.addEventListener('click', () => switchCategory('reviews')); navItems.info.addEventListener('click', () => switchCategory('info')); }
+            
+            btns.forEach((btn, idx) => { btn.addEventListener('click', () => { const cat = btn.getAttribute('data-cat'); switchCategory(cat); }); });
+            
+            // BOTTOM NAV CLICK HANDLER
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(nav => {
+                nav.addEventListener('click', () => {
+                    const navTarget = nav.getAttribute('data-nav');
+                    if (navTarget === 'explore') switchCategory('explore');
+                    else if (navTarget === 'character') switchCategory('character');
+                    else if (navTarget === 'weapon') switchCategory('weapon');
+                    else if (navTarget === 'talent') switchCategory('talent');
+                    else if (navTarget === 'quest') switchCategory('quest');
+                    else if (navTarget === 'reviews') switchCategory('reviews');
+                    else if (navTarget === 'info') switchCategory('info');
+                    else if (navTarget === 'music') {
+                        document.getElementById('musicModal').classList.add('active');
+                        if (currentTrack) {
+                            document.getElementById('nowPlayingSection').style.display = 'flex';
+                            document.getElementById('musicControls').style.display = 'flex';
+                            document.getElementById('volumeSliderDiv').style.display = 'block';
+                            document.getElementById('playPauseBtn').innerHTML = !audioElement.paused ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+                        }
+                    }
+                    
+                    navItems.forEach(n => n.classList.remove('active'));
+                    nav.classList.add('active');
+                });
+            });
         }
         
         function initPriceCards() {
@@ -1869,7 +2088,11 @@
                 card.addEventListener('click', () => {
                     const name = card.getAttribute('data-name');
                     const price = parseInt(card.getAttribute('data-price'));
-                    if (name && price) { selectedProduct = name; selectedPrice = price; showToast(`✅ ${name} - Rp ${price.toLocaleString()} dipilih`); }
+                    if (name && price && price > 0) { 
+                        selectedProduct = name; 
+                        selectedPrice = price; 
+                        showToast(`✅ ${name} - Rp ${price.toLocaleString()} dipilih`); 
+                    }
                     else if (name && name.includes('PROGRESS')) {
                         let percent = prompt('Masukkan persentase progress yang ingin dinaikkan (1-100):', '10');
                         percent = parseInt(percent);
@@ -1914,6 +2137,7 @@
                     document.getElementById('welcomeUsername').innerText = username;
                     initCategoryNav();
                     initPriceCards();
+                    setupNavSwitch();
                     loadMyQueue();
                     return;
                 }
@@ -1924,6 +2148,7 @@
             document.getElementById('bottomNav').style.display = 'none';
             initCategoryNav();
             initPriceCards();
+            setupNavSwitch();
         }
         
         function escapeHtml(str) {
@@ -1931,19 +2156,8 @@
             return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
         }
         
-        // Setup Music Player Modal
         function setupMusicPlayer() {
             const musicModal = document.getElementById('musicModal');
-            const navMusic = document.getElementById('nav-music');
-            navMusic?.addEventListener('click', () => {
-                musicModal.classList.add('active');
-                if (currentTrack) {
-                    document.getElementById('nowPlayingSection').style.display = 'flex';
-                    document.getElementById('musicControls').style.display = 'flex';
-                    document.getElementById('volumeSliderDiv').style.display = 'block';
-                    document.getElementById('playPauseBtn').innerHTML = !audioElement.paused ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-                }
-            });
             document.getElementById('closeMusicBtn')?.addEventListener('click', () => musicModal.classList.remove('active'));
             document.getElementById('searchSongBtn')?.addEventListener('click', () => searchMusic(document.getElementById('searchSongInput').value));
             document.getElementById('searchSongInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchMusic(e.target.value); });
@@ -1968,20 +2182,18 @@
         window.showReadme = showReadme;
         window.copyCommand = copyCommand;
         window.openBotCommands = openBotCommands;
+        window.openBot = openBot;
         
         applyTheme(currentMode);
         document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => applyTheme(btn.getAttribute('data-mode'))));
         
-        // Initialize review components
         initStarRating();
         document.getElementById('submitReviewBtn')?.addEventListener('click', submitReview);
         loadReviews();
         
-        // Setup music player
         setupMusicPlayer();
         loadSavedMusic();
         
-        // Bot integration
         checkBotStatus();
         
         loadVideoUrl();
