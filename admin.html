@@ -688,7 +688,6 @@
             
             showLoading();
             try {
-                // Simpan ke Firebase untuk diproses bot
                 await push(ref(db, 'bizzy_broadcasts'), {
                     message: message,
                     sender: adminUsername || 'Admin',
@@ -935,7 +934,6 @@
                 });
                 showToast(`✅ Status pesanan diubah menjadi ${status.toUpperCase()}`);
                 
-                // Notifikasi ke bot
                 try {
                     await push(ref(db, 'bizzy_bot_notifications'), {
                         type: 'status_update',
@@ -947,7 +945,7 @@
             }
         };
 
-        // ==================== SCHEDULE ====================
+        // ==================== SCHEDULE (FIXED) ====================
         async function loadSchedule() {
             const statusRef = ref(db, 'bizzy_settings/web_status');
             const snapshot = await get(statusRef);
@@ -956,10 +954,10 @@
             document.getElementById('closeTime').value = data.closeHour ? `${data.closeHour.toString().padStart(2,'0')}:${(data.closeMinute || 0).toString().padStart(2,'0')}` : '23:00';
             document.getElementById('openTime').value = data.openHour ? `${data.openHour.toString().padStart(2,'0')}:${(data.openMinute || 0).toString().padStart(2,'0')}` : '08:00';
             document.getElementById('manualCloseToggle').checked = data.manualClosed || false;
-            document.getElementById('manualCloseStatus').innerText = data.manualClosed ? 'Tutup Manual (Web Tertutup)' : 'Normal (Jadwal Otomatis)';
+            document.getElementById('manualCloseStatus').innerText = data.manualClosed ? '🔴 Tutup Manual (Web Tertutup)' : '✅ Normal (Jadwal Otomatis)';
             
             if (data.closeHour && data.openHour) {
-                document.getElementById('scheduleStatus').innerHTML = `🕐 Web akan tutup otomatis pukul ${data.closeHour.toString().padStart(2,'0')}:${(data.closeMinute || 0).toString().padStart(2,'0')} dan buka pukul ${data.openHour.toString().padStart(2,'0')}:${(data.openMinute || 0).toString().padStart(2,'0')}`;
+                document.getElementById('scheduleStatus').innerHTML = `🕐 Web akan tutup otomatis pukul ${data.closeHour.toString().padStart(2,'0')}:${(data.closeMinute || 0).toString().padStart(2,'0')} WIB dan buka pukul ${data.openHour.toString().padStart(2,'0')}:${(data.openMinute || 0).toString().padStart(2,'0')} WIB`;
             }
         }
 
@@ -971,13 +969,13 @@
             const [closeHour, closeMinute] = closeTime.split(':').map(Number);
             const [openHour, openMinute] = openTime.split(':').map(Number);
             
+            // FIXED: Hanya simpan data yang diperlukan, manualClosed disimpan dengan benar
             const scheduleData = {
                 closeHour: closeHour,
                 closeMinute: closeMinute,
                 openHour: openHour,
                 openMinute: openMinute,
                 manualClosed: manualClosed,
-                closed: manualClosed,
                 updatedAt: new Date().toISOString()
             };
             
@@ -1071,7 +1069,7 @@
                 const usersArray = Object.entries(users);
                 let html = '<div style="overflow-x:auto;">';
                 html += '<table style="width:100%; border-collapse:collapse;">';
-                html += '<tr style="border-bottom:1px solid rgba(30,136,229,0.3);"><th style="padding:10px; text-align:left;">Username</th><th style="padding:10px; text-align:left;">User ID</th><th style="padding:10px; text-align:left;">Bergabung</th><th style="padding:10px; text-align:left;">Telegram</th></tr>';
+                html += '<tr style="border-bottom:1px solid rgba(30,136,229,0.3);"><th style="padding:10px; text-align:left;">Username</th><th style="padding:10px; text-align:left;">User ID</th><th style="padding:10px; text-align:left;">Bergabung</th><th style="padding:10px; text-align:left;">Telegram</th><tr>';
                 
                 for (const [id, user] of usersArray) {
                     html += `
